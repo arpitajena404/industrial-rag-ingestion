@@ -1,5 +1,6 @@
 import re
 import unicodedata
+from collections import Counter
 
 def clean_text(text: str) -> str:
     """Cleans and standardizes raw text:
@@ -54,6 +55,41 @@ def clean_text(text: str) -> str:
 
     return cleaned_text.strip()
 
+
+def remove_boilerplate_lines(text: str, min_repeats: int = 5, max_line_len: int = 100) -> str:
+    """Removes lines that repeat many times across a single document, e.g. page
+    headers/footers, letterheads, fax numbers, page numbers that pdfplumber
+    extracts once per physical page. Only strips short, exactly-repeating lines
+    so real repeated content (e.g. table rows, 'CRITICAL', section names) is
+    left untouched. Skip lines containing '|' since those are table rows
+    handled separately by the excel/table chunker.
+
+    NOTE: extract_pdf() currently concatenates all pages into one string with
+    no page markers, so this works on exact line repetition rather than
+    per-page position. This is a reasonable proxy since headers/footers repeat
+    verbatim on every page, but if page boundaries are added to extract.py
+    later, a position-aware version would be more precise.
+    """
+    if not text:
+        return ""
+
+    lines = text.split("\n")
+    candidates = [
+        l.strip() for l in lines
+        if l.strip() and len(l.strip()) <= max_line_len and "|" not in l
+    ]
+    counts = Counter(candidates)
+    boilerplate = {line for line, cnt in counts.items() if cnt >= min_repeats}
+
+    if not boilerplate:
+        return text
+
+    kept_lines = [l for l in lines if l.strip() not in boilerplate]
+    result = "\n".join(kept_lines)
+    result = re.sub(r"\n{3,}", "\n\n", result)
+    return result.strip()
+
+
 if __name__ == "__main__":
     import os
     import sys
@@ -96,6 +132,8 @@ if __name__ == "__main__":
                         raw_text = extract_excel(file_path)
                         
                     cleaned_text = clean_text(raw_text)
+                    if ext in pdf_exts or ext in word_exts:
+                        cleaned_text = remove_boilerplate_lines(cleaned_text)
                     print(f"Raw characters: {len(raw_text)} | Cleaned characters: {len(cleaned_text)}")
                     print("\n--- Preview of CLEANED text (First 350 characters) ---")
                     print(cleaned_text[:350])
