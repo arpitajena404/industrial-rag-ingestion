@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Industrial Operations Advisor</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #070A13;
+            --panel-bg: rgba(15, 23, 42, 0.6);
+            --border-color: rgba(255, 255, 255, 0.06);
+            --accent-cyan: #00F0FF;
+            --accent-blue: #3B82F6;
+            --accent-emerald: #10B981;
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --chat-user-bg: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(0, 240, 255, 0.15));
+            --chat-assistant-bg: rgba(255, 255, 255, 0.02);
+            --shadow-glow: 0 0 25px rgba(0, 240, 255, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background-image: 
+                radial-gradient(circle at 12% 18%, rgba(0, 240, 255, 0.04) 0%, transparent 45%),
+                radial-gradient(circle at 88% 82%, rgba(59, 130, 246, 0.04) 0%, transparent 45%);
+        }
+
+        /* HEADER SECTION */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem 2rem;
+            background: rgba(7, 10, 19, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 10;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .brand-icon {
+            width: 2.2rem;
+            height: 2.2rem;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            color: #070A13;
+            font-size: 1.2rem;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.25);
+        }
+
+        .brand h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #FFFFFF, var(--text-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 0.35rem 0.8rem;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: var(--accent-emerald);
+            border-radius: 20px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--accent-emerald);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--accent-emerald);
+        }
+
+        /* MAIN SYSTEM LAYOUT */
+        .workspace {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* CHAT SECTION */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            flex: 3.5;
+            border-right: 1px solid var(--border-color);
+            background: rgba(7, 10, 19, 0.2);
+        }
+
+        .messages-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* CUSTOM SCROLLBARS */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .message {
+            display: flex;
+            flex-direction: column;
+            max-width: 85%;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .message.user {
+            align-self: flex-end;
+        }
+
+        .message.assistant {
+            align-self: flex-start;
+        }
+
+        .message-label {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.35rem;
+            margin-left: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .message.user .message-label {
+            align-self: flex-end;
+            margin-right: 0.5rem;
+            margin-left: 0;
+        }
+
+        .message-bubble {
+            padding: 1.1rem 1.4rem;
+            border-radius: 16px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-bubble {
+            background: var(--chat-user-bg);
+            border: 1px solid rgba(59, 130, 246, 0.25);
+            border-top-right-radius: 4px;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.08);
+        }
+
+        .message.assistant .message-bubble {
+            background: var(--chat-assistant-bg);
+            border: 1px solid var(--border-color);
+            border-top-left-radius: 4px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* MARKDOWN ELEMENT RENDERS */
+        .message-bubble p {
+            margin-bottom: 0.8rem;
+        }
+        .message-bubble p:last-child {
+            margin-bottom: 0;
+        }
+        .message-bubble ul, .message-bubble ol {
+            margin-bottom: 0.8rem;
+            padding-left: 1.5rem;
+        }
+        .message-bubble li {
+            margin-bottom: 0.3rem;
+        }
+        .message-bubble code {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 0.15rem 0.35rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            color: #E2E8F0;
+        }
+        .message-bubble pre {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            overflow-x: auto;
+            margin-bottom: 0.8rem;
+        }
+        .message-bubble pre code {
+            background: none;
+            padding: 0;
+            font-size: 0.85rem;
+        }
+
+        /* INPUT CONTROL BAR */
+        .input-area {
+            padding: 1.5rem 2rem;
+            background: rgba(7, 10, 19, 0.9);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 0.5rem 0.8rem 0.5rem 1.2rem;
+            transition: all 0.3s;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: var(--accent-cyan);
+            box-shadow: var(--shadow-glow);
+        }
+
+        input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            padding: 0.6rem 0;
+        }
+
+        input::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.7;
+        }
+
+        .send-button {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+            color: #070A13;
+            border: none;
+            outline: none;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(0, 240, 255, 0.2);
+        }
+
+        .send-button:hover {
+            opacity: 0.95;
+            transform: translateY(-1px);
+        }
+
+        .send-button:active {
+            transform: translateY(0);
+        }
+
+        /* PANEL SIDEBAR (Citations & Info) */
+        .info-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: rgba(15, 23, 42, 0.35);
+            backdrop-filter: blur(8px);
+            overflow-y: auto;
+            padding: 1.5rem;
+            gap: 2rem;
+        }
+
+        .panel-section-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+
+        .overview-box {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.2rem;
+            line-height: 1.5;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .overview-box strong {
+            color: var(--text-primary);
+        }
+
+        /* CITATION CARDS */
+        .citations-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .citation-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .citation-card:hover {
+            border-color: rgba(0, 240, 255, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 240, 255, 0.04);
+        }
+
+        .citation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem 1rem;
+            background: rgba(255, 255, 255, 0.03);
+            cursor: pointer;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .citation-title {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--accent-cyan);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: calc(100% - 90px);
+        }
+
+        .citation-badge {
+            font-size: 0.7rem;
+            font-weight: 700;
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #10B981;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .citation-body {
+            padding: 1rem;
+            display: none;
+            flex-direction: column;
+            gap: 0.6rem;
+            font-size: 0.8rem;
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        .citation-text {
+            color: var(--text-secondary);
+            font-style: italic;
+            line-height: 1.5;
+        }
+
+        .citation-meta {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            border-top: 1px dashed rgba(255, 255, 255, 0.05);
+            padding-top: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* LOADING DOTS */
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 0.4rem 0.8rem;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--text-secondary);
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* WELCOME SCREEN PLACEHOLDER */
+        .welcome-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .welcome-card h2 {
+            font-size: 1.8rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .welcome-card p {
+            max-width: 450px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SYSTEM HEADER -->
+    <header>
+        <div class="brand">
+            <div class="brand-icon">⚙️</div>
+            <h1>Industrial Advisor System</h1>
+        </div>
+        <div class="status-badge">
+            <div class="status-dot"></div>
+            <span>Operations Advisor Active</span>
+        </div>
+    </header>
+
+    <!-- CORE WORKSPACE -->
+    <div class="workspace">
+        
+        <!-- LEFT SIDE: CHAT FEED -->
+        <div class="chat-container">
+            <div class="messages-area" id="messages-area">
+                
+                <!-- Welcome greeting -->
+                <div class="welcome-card" id="welcome-card">
+                    <h2>⚙️ Advisor Operations Console</h2>
+                    <p>Welcome. I am fully integrated with your plant documents database. Ask me any question related to spare parts, maintenance schedules, SOP procedures, or compliance codes.</p>
+                </div>
+                
+            </div>
+            
+            <!-- INPUT FIELD FOR QUERY -->
+            <div class="input-area">
+                <form id="chat-form" onsubmit="handleQuery(event)">
+                    <div class="input-wrapper">
+                        <input type="text" id="query-input" placeholder="Type your query regarding pump maintenance, tags or regulations..." autocomplete="off">
+                        <button type="submit" class="send-button">Send Query</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- RIGHT SIDE: CITATIONS BAR -->
+        <div class="info-panel">
+            <div>
+                <div class="panel-section-title">Active Database</div>
+                <div class="overview-box">
+                    <strong>Bharat Steel Plant</strong><br>
+                    Connected collection: <code>industrial_knowledge</code><br>
+                    Total indexed documents: <strong>14 files</strong>
+                </div>
+            </div>
+            
+            <div>
+                <div class="panel-section-title">Retrieval Citations</div>
+                <div class="citations-list" id="citations-list">
+                    <div style="font-size:0.85rem; color: var(--text-secondary); font-style:italic;">No query submitted yet. Active citations will load here.</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const messagesArea = document.getElementById('messages-area');
+        const citationsList = document.getElementById('citations-list');
+        const welcomeCard = document.getElementById('welcome-card');
+        const queryInput = document.getElementById('query-input');
+
+        // Markdown formatter helper function (handling simple bold, lists, and code blocks)
+        function parseMarkdown(text) {
+            if (!text) return "";
+            let html = text
+                // Escape HTML tags
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                // Code Blocks
+                .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+                // Inline Code
+                .replace(/`([^`\n]+)`/g, '<code>$1</code>')
+                // Bold text
+                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                // List items
+                .replace(/^\s*[-*]\s+(.+)$/gm, '<li>$1</li>')
+                // Clean lists wrapping
+                .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+                // Paragraph spaces
+                .replace(/\n\n/g, '<br><br>')
+                .replace(/\n/g, '<br>');
+            return html;
+        }
+
+        function appendMessage(role, content, sources = null) {
+            // Remove welcome card if present
+            if (welcomeCard) welcomeCard.style.display = 'none';
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+
+            const labelSpan = document.createElement('span');
+            labelSpan.className = 'message-label';
+            labelSpan.textContent = role === 'user' ? 'Operator' : 'System Advisor';
+
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = 'message-bubble';
+            bubbleDiv.innerHTML = role === 'user' ? content : parseMarkdown(content);
+
+            messageDiv.appendChild(labelSpan);
+            messageDiv.appendChild(bubbleDiv);
+            messagesArea.appendChild(messageDiv);
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        }
+
+        function appendLoader() {
+            const loaderDiv = document.createElement('div');
+            loaderDiv.className = 'message assistant';
+            loaderDiv.id = 'temp-loader';
+
+            const labelSpan = document.createElement('span');
+            labelSpan.className = 'message-label';
+            labelSpan.textContent = 'System Advisor';
+
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = 'message-bubble';
+            
+            const indicatorDiv = document.createElement('div');
+            indicatorDiv.className = 'typing-indicator';
+            indicatorDiv.innerHTML = `
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            `;
+            bubbleDiv.appendChild(indicatorDiv);
+
+            loaderDiv.appendChild(labelSpan);
+            loaderDiv.appendChild(bubbleDiv);
+            messagesArea.appendChild(loaderDiv);
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        }
+
+        function removeLoader() {
+            const loader = document.getElementById('temp-loader');
+            if (loader) loader.remove();
+        }
+
+        function renderCitations(sources) {
+            citationsList.innerHTML = '';
+            if (!sources || sources.length === 0) {
+                citationsList.innerHTML = '<div style="font-size:0.85rem; color: var(--text-secondary); font-style:italic;">No document vectors matched this query.</div>';
+                return;
+            }
+
+            sources.forEach((src, idx) => {
+                const meta = src.metadata;
+                const scorePercentage = (src.score * 100).toFixed(1);
+
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'citation-card';
+
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'citation-header';
+                headerDiv.innerHTML = `
+                    <span class="citation-title">📄 ${meta.source_file}</span>
+                    <span class="citation-badge">Match: ${scorePercentage}%</span>
+                `;
+
+                const bodyDiv = document.createElement('div');
+                bodyDiv.className = 'citation-body';
+                bodyDiv.innerHTML = `
+                    <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.2rem;">Section: ${meta.section || 'General'}</div>
+                    <div class="citation-text">"${src.text}"</div>
+                    <div class="citation-meta">
+                        <span>Tag: ${meta.equipment_tags || 'None'}</span>
+                        <span>Date: ${meta.filename_date || 'N/A'}</span>
+                    </div>
+                `;
+
+                // Toggle click event to expand citation text
+                headerDiv.onclick = () => {
+                    const isDisplayed = bodyDiv.style.display === 'flex';
+                    bodyDiv.style.display = isDisplayed ? 'none' : 'flex';
+                };
+
+                cardDiv.appendChild(headerDiv);
+                cardDiv.appendChild(bodyDiv);
+                citationsList.appendChild(cardDiv);
+            });
+        }
+
+        async function handleQuery(event) {
+            event.preventDefault();
+            const text = queryInput.value.trim();
+            if (!text) return;
+
+            // Render operator prompt
+            appendMessage('user', text);
+            queryInput.value = '';
+
+            // Render processing status
+            appendLoader();
+
+            try {
+                const response = await fetch('/api/query', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question: text })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP Error: ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                removeLoader();
+                // Render synthesized response
+                appendMessage('assistant', result.answer);
+                // Render citation cards side panel
+                renderCitations(result.sources);
+
+            } catch (err) {
+                removeLoader();
+                appendMessage('assistant', `⚠️ Sorry, a connection error occurred: ${err.message}. Please verify the backend is running.`);
+                console.error(err);
+            }
+        }
+    </script>
+</body>
+</html>
