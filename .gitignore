@@ -1,1 +1,13 @@
+# Environment variables
+.env
 
+# Databases
+chroma_db/
+
+# Python cache & compiles
+__pycache__/
+*.pyc
+
+# Local data outputs (processed chunks)
+data/processed/
+*.log

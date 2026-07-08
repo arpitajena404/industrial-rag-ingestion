@@ -151,9 +151,11 @@ def chunk_prose(text: str, doc_metadata: dict, chunk_size: int = 900,
     for section_heading, section_text in sections:
         pieces = split_text(section_text, chunk_size=chunk_size, overlap=overlap)
         for idx, piece in enumerate(pieces):
+            # Prepend the section heading to the text block for semantic indexing context
+            full_text = f"Section: {section_heading}\n\n{piece}" if section_heading else piece
             chunks.append({
                 "chunk_id": str(uuid.uuid4()),
-                "text": piece,
+                "text": full_text,
                 "section": section_heading or "General",
                 "chunk_index": idx,
                 **doc_metadata,
