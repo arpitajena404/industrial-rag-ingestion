@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Industrial Operations Advisor</title>
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -16,6 +15,7 @@
             --accent-cyan: #00F0FF;
             --accent-blue: #3B82F6;
             --accent-emerald: #10B981;
+            --accent-violet: #8B5CF6;
             --text-primary: #F8FAFC;
             --text-secondary: #94A3B8;
             --chat-user-bg: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(0, 240, 255, 0.15));
@@ -23,11 +23,7 @@
             --shadow-glow: 0 0 25px rgba(0, 240, 255, 0.12);
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: 'Inter', sans-serif;
@@ -37,12 +33,12 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            background-image: 
+            background-image:
                 radial-gradient(circle at 12% 18%, rgba(0, 240, 255, 0.04) 0%, transparent 45%),
                 radial-gradient(circle at 88% 82%, rgba(59, 130, 246, 0.04) 0%, transparent 45%);
         }
 
-        /* HEADER SECTION */
+        /* HEADER */
         header {
             display: flex;
             justify-content: space-between;
@@ -54,135 +50,79 @@
             z-index: 10;
         }
 
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-        }
+        .brand { display: flex; align-items: center; gap: 0.8rem; }
 
         .brand-icon {
-            width: 2.2rem;
-            height: 2.2rem;
+            width: 2.2rem; height: 2.2rem;
             background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
             border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Outfit', sans-serif;
-            font-weight: 800;
-            color: #070A13;
-            font-size: 1.2rem;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Outfit', sans-serif; font-weight: 800;
+            color: #070A13; font-size: 1.2rem;
             box-shadow: 0 0 15px rgba(0, 240, 255, 0.25);
         }
 
         .brand h1 {
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.25rem;
-            font-weight: 700;
+            font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 700;
             background: linear-gradient(to right, #FFFFFF, var(--text-secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
 
+        .header-right { display: flex; align-items: center; gap: 1rem; }
+
         .status-badge {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.75rem;
-            font-weight: 500;
+            display: flex; align-items: center; gap: 0.5rem;
+            font-size: 0.75rem; font-weight: 500;
             padding: 0.35rem 0.8rem;
             background: rgba(16, 185, 129, 0.1);
             border: 1px solid rgba(16, 185, 129, 0.2);
-            color: var(--accent-emerald);
-            border-radius: 20px;
+            color: var(--accent-emerald); border-radius: 20px;
         }
 
         .status-dot {
-            width: 6px;
-            height: 6px;
+            width: 6px; height: 6px;
             background-color: var(--accent-emerald);
             border-radius: 50%;
             box-shadow: 0 0 8px var(--accent-emerald);
         }
 
-        /* MAIN SYSTEM LAYOUT */
-        .workspace {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-        }
+        /* WORKSPACE */
+        .workspace { display: flex; flex: 1; overflow: hidden; }
 
-        /* CHAT SECTION */
+        /* CHAT */
         .chat-container {
-            display: flex;
-            flex-direction: column;
+            display: flex; flex-direction: column;
             flex: 3.5;
             border-right: 1px solid var(--border-color);
             background: rgba(7, 10, 19, 0.2);
         }
 
         .messages-area {
-            flex: 1;
-            overflow-y: auto;
+            flex: 1; overflow-y: auto;
             padding: 2rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
+            display: flex; flex-direction: column; gap: 1.5rem;
         }
 
-        /* CUSTOM SCROLLBARS */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.15);
-        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
 
-        .message {
-            display: flex;
-            flex-direction: column;
-            max-width: 85%;
-            animation: fadeIn 0.3s ease-out;
-        }
-
-        .message.user {
-            align-self: flex-end;
-        }
-
-        .message.assistant {
-            align-self: flex-start;
-        }
+        .message { display: flex; flex-direction: column; max-width: 85%; animation: fadeIn 0.3s ease-out; }
+        .message.user { align-self: flex-end; }
+        .message.assistant { align-self: flex-start; }
 
         .message-label {
-            font-family: 'Outfit', sans-serif;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin-bottom: 0.35rem;
-            margin-left: 0.5rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            font-family: 'Outfit', sans-serif; font-size: 0.75rem; font-weight: 600;
+            color: var(--text-secondary); margin-bottom: 0.35rem; margin-left: 0.5rem;
+            text-transform: uppercase; letter-spacing: 0.5px;
         }
 
-        .message.user .message-label {
-            align-self: flex-end;
-            margin-right: 0.5rem;
-            margin-left: 0;
-        }
+        .message.user .message-label { align-self: flex-end; margin-right: 0.5rem; margin-left: 0; }
 
         .message-bubble {
-            padding: 1.1rem 1.4rem;
-            border-radius: 16px;
-            font-size: 0.95rem;
-            line-height: 1.6;
-            word-wrap: break-word;
+            padding: 1.1rem 1.4rem; border-radius: 16px;
+            font-size: 0.95rem; line-height: 1.6; word-wrap: break-word;
         }
 
         .message.user .message-bubble {
@@ -196,46 +136,26 @@
             background: var(--chat-assistant-bg);
             border: 1px solid var(--border-color);
             border-top-left-radius: 4px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
-        /* MARKDOWN ELEMENT RENDERS */
-        .message-bubble p {
-            margin-bottom: 0.8rem;
-        }
-        .message-bubble p:last-child {
-            margin-bottom: 0;
-        }
-        .message-bubble ul, .message-bubble ol {
-            margin-bottom: 0.8rem;
-            padding-left: 1.5rem;
-        }
-        .message-bubble li {
-            margin-bottom: 0.3rem;
-        }
+        .message-bubble p { margin-bottom: 0.8rem; }
+        .message-bubble p:last-child { margin-bottom: 0; }
+        .message-bubble ul, .message-bubble ol { margin-bottom: 0.8rem; padding-left: 1.5rem; }
+        .message-bubble li { margin-bottom: 0.3rem; }
         .message-bubble code {
             font-family: 'JetBrains Mono', monospace;
-            background: rgba(255, 255, 255, 0.06);
-            padding: 0.15rem 0.35rem;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            color: #E2E8F0;
+            background: rgba(255,255,255,0.06);
+            padding: 0.15rem 0.35rem; border-radius: 4px;
+            font-size: 0.85rem; color: #E2E8F0;
         }
         .message-bubble pre {
-            background: rgba(0, 0, 0, 0.4);
-            padding: 1rem;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            overflow-x: auto;
-            margin-bottom: 0.8rem;
+            background: rgba(0,0,0,0.4); padding: 1rem; border-radius: 8px;
+            border: 1px solid var(--border-color); overflow-x: auto; margin-bottom: 0.8rem;
         }
-        .message-bubble pre code {
-            background: none;
-            padding: 0;
-            font-size: 0.85rem;
-        }
+        .message-bubble pre code { background: none; padding: 0; font-size: 0.85rem; }
 
-        /* INPUT CONTROL BAR */
+        /* INPUT */
         .input-area {
             padding: 1.5rem 2rem;
             background: rgba(7, 10, 19, 0.9);
@@ -243,187 +163,220 @@
         }
 
         .input-wrapper {
-            display: flex;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.03);
+            display: flex; align-items: center;
+            background: rgba(255,255,255,0.03);
             border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 0.5rem 0.8rem 0.5rem 1.2rem;
             transition: all 0.3s;
         }
 
-        .input-wrapper:focus-within {
-            border-color: var(--accent-cyan);
-            box-shadow: var(--shadow-glow);
-        }
+        .input-wrapper:focus-within { border-color: var(--accent-cyan); box-shadow: var(--shadow-glow); }
 
         input {
-            flex: 1;
-            background: transparent;
-            border: none;
-            outline: none;
-            color: var(--text-primary);
-            font-family: 'Inter', sans-serif;
-            font-size: 0.95rem;
-            padding: 0.6rem 0;
+            flex: 1; background: transparent; border: none; outline: none;
+            color: var(--text-primary); font-family: 'Inter', sans-serif;
+            font-size: 0.95rem; padding: 0.6rem 0;
         }
 
-        input::placeholder {
-            color: var(--text-secondary);
-            opacity: 0.7;
-        }
+        input::placeholder { color: var(--text-secondary); opacity: 0.7; }
 
         .send-button {
             background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
-            color: #070A13;
-            border: none;
-            outline: none;
-            font-family: 'Outfit', sans-serif;
-            font-weight: 700;
-            font-size: 0.9rem;
-            padding: 0.6rem 1.2rem;
-            border-radius: 8px;
-            cursor: pointer;
+            color: #070A13; border: none; outline: none;
+            font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 0.9rem;
+            padding: 0.6rem 1.2rem; border-radius: 8px; cursor: pointer;
             transition: all 0.2s;
             box-shadow: 0 4px 12px rgba(0, 240, 255, 0.2);
         }
 
-        .send-button:hover {
-            opacity: 0.95;
-            transform: translateY(-1px);
-        }
+        .send-button:hover { opacity: 0.95; transform: translateY(-1px); }
+        .send-button:active { transform: translateY(0); }
 
-        .send-button:active {
-            transform: translateY(0);
-        }
-
-        /* PANEL SIDEBAR (Citations & Info) */
+        /* RIGHT PANEL */
         .info-panel {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
+            flex: 1; display: flex; flex-direction: column;
             background: rgba(15, 23, 42, 0.35);
             backdrop-filter: blur(8px);
-            overflow-y: auto;
-            padding: 1.5rem;
-            gap: 2rem;
+            overflow: hidden;
         }
 
-        .panel-section-title {
-            font-family: 'Outfit', sans-serif;
-            font-size: 0.95rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-secondary);
-            margin-bottom: 1rem;
+        /* TABS */
+        .panel-tabs {
+            display: flex;
             border-bottom: 1px solid var(--border-color);
-            padding-bottom: 0.5rem;
+            background: rgba(7, 10, 19, 0.5);
+            flex-shrink: 0;
+        }
+
+        .panel-tab {
+            flex: 1; padding: 0.85rem 0.5rem;
+            font-family: 'Outfit', sans-serif; font-size: 0.8rem; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            cursor: pointer; border: none; background: none;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .panel-tab:hover { color: var(--text-primary); }
+
+        .panel-tab.active {
+            color: var(--accent-cyan);
+            border-bottom-color: var(--accent-cyan);
+        }
+
+        .panel-tab.graph-tab.active {
+            color: var(--accent-violet);
+            border-bottom-color: var(--accent-violet);
+        }
+
+        /* TAB CONTENT */
+        .tab-content { display: none; flex: 1; overflow-y: auto; padding: 1.5rem; flex-direction: column; gap: 1.5rem; }
+        .tab-content.active { display: flex; }
+
+        .panel-section-title {
+            font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1px;
+            color: var(--text-secondary); margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;
         }
 
         .overview-box {
-            background: rgba(255, 255, 255, 0.02);
+            background: rgba(255,255,255,0.02);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1.2rem;
-            line-height: 1.5;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
+            border-radius: 12px; padding: 1.2rem;
+            line-height: 1.5; font-size: 0.85rem; color: var(--text-secondary);
         }
 
-        .overview-box strong {
-            color: var(--text-primary);
-        }
+        .overview-box strong { color: var(--text-primary); }
 
-        /* CITATION CARDS */
-        .citations-list {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
+        /* CITATIONS */
+        .citations-list { display: flex; flex-direction: column; gap: 1rem; }
 
         .citation-card {
-            background: rgba(255, 255, 255, 0.02);
+            background: rgba(255,255,255,0.02);
             border: 1px solid var(--border-color);
-            border-radius: 10px;
-            overflow: hidden;
-            transition: all 0.3s;
+            border-radius: 10px; overflow: hidden; transition: all 0.3s;
         }
 
-        .citation-card:hover {
-            border-color: rgba(0, 240, 255, 0.3);
-            box-shadow: 0 4px 15px rgba(0, 240, 255, 0.04);
-        }
+        .citation-card:hover { border-color: rgba(0, 240, 255, 0.3); box-shadow: 0 4px 15px rgba(0, 240, 255, 0.04); }
 
         .citation-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.8rem 1rem;
-            background: rgba(255, 255, 255, 0.03);
-            cursor: pointer;
-            border-bottom: 1px solid var(--border-color);
+            display: flex; justify-content: space-between; align-items: center;
+            gap: 0.5rem; padding: 0.8rem 1rem;
+            background: rgba(255,255,255,0.03);
+            cursor: pointer; border-bottom: 1px solid var(--border-color);
         }
 
         .citation-title {
-            font-family: 'Outfit', sans-serif;
-            font-weight: 600;
-            font-size: 0.85rem;
+            font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 0.85rem;
             color: var(--accent-cyan);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
             max-width: calc(100% - 90px);
         }
 
         .citation-badge {
-            font-size: 0.7rem;
-            font-weight: 700;
+            font-size: 0.7rem; font-weight: 700;
             background: rgba(16, 185, 129, 0.15);
             border: 1px solid rgba(16, 185, 129, 0.3);
-            color: #10B981;
-            padding: 0.15rem 0.5rem;
-            border-radius: 4px;
-            white-space: nowrap;
-            flex-shrink: 0;
+            color: #10B981; padding: 0.15rem 0.5rem;
+            border-radius: 4px; white-space: nowrap; flex-shrink: 0;
         }
 
         .citation-body {
-            padding: 1rem;
-            display: none;
-            flex-direction: column;
-            gap: 0.6rem;
-            font-size: 0.8rem;
-            background: rgba(0, 0, 0, 0.15);
+            padding: 1rem; display: none; flex-direction: column;
+            gap: 0.6rem; font-size: 0.8rem; background: rgba(0,0,0,0.15);
         }
 
-        .citation-text {
-            color: var(--text-secondary);
-            font-style: italic;
-            line-height: 1.5;
-        }
+        .citation-text { color: var(--text-secondary); font-style: italic; line-height: 1.5; }
 
         .citation-meta {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            border-top: 1px dashed rgba(255, 255, 255, 0.05);
+            font-size: 0.75rem; color: var(--text-secondary);
+            border-top: 1px dashed rgba(255,255,255,0.05);
             padding-top: 0.5rem;
-            display: flex;
-            justify-content: space-between;
+            display: flex; justify-content: space-between;
         }
 
-        /* LOADING DOTS */
-        .typing-indicator {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            padding: 0.4rem 0.8rem;
+        /* GRAPH PANEL */
+        .graph-controls { display: flex; flex-direction: column; gap: 0.75rem; }
+
+        .graph-select, .graph-input-field {
+            width: 100%; padding: 0.65rem 0.9rem;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 8px; color: var(--text-primary);
+            font-family: 'Inter', sans-serif; font-size: 0.85rem;
+            outline: none; transition: border-color 0.2s;
+            appearance: none;
         }
+
+        .graph-select:focus, .graph-input-field:focus {
+            border-color: var(--accent-violet);
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.1);
+        }
+
+        .graph-select option { background: #0F172A; }
+
+        .graph-query-btn {
+            width: 100%; padding: 0.7rem;
+            background: linear-gradient(135deg, var(--accent-violet), #6D28D9);
+            color: white; border: none; border-radius: 8px;
+            font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 0.9rem;
+            cursor: pointer; transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25);
+        }
+
+        .graph-query-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .graph-query-btn:active { transform: translateY(0); }
+        .graph-query-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .graph-results { display: flex; flex-direction: column; gap: 0.6rem; }
+
+        .graph-result-item {
+            background: rgba(139, 92, 246, 0.05);
+            border: 1px solid rgba(139, 92, 246, 0.15);
+            border-radius: 8px; padding: 0.75rem 1rem;
+            font-size: 0.82rem; line-height: 1.5;
+            transition: border-color 0.2s;
+        }
+
+        .graph-result-item:hover { border-color: rgba(139, 92, 246, 0.35); }
+
+        .graph-rel-tag {
+            display: inline-block;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+            background: rgba(139, 92, 246, 0.2);
+            color: #C4B5FD; padding: 0.1rem 0.4rem;
+            border-radius: 3px; margin-right: 0.4rem;
+        }
+
+        .graph-node-type {
+            font-size: 0.68rem; color: var(--text-secondary);
+            text-transform: uppercase; letter-spacing: 0.5px;
+            margin-bottom: 0.2rem;
+        }
+
+        .graph-node-value { color: var(--text-primary); font-weight: 500; }
+
+        .graph-empty {
+            font-size: 0.85rem; color: var(--text-secondary);
+            font-style: italic; text-align: center; padding: 1.5rem 0;
+        }
+
+        .graph-count-badge {
+            display: inline-block; font-size: 0.7rem; font-weight: 700;
+            background: rgba(139, 92, 246, 0.15);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            color: #A78BFA; padding: 0.15rem 0.5rem;
+            border-radius: 4px; margin-left: 0.5rem;
+        }
+
+        /* TYPING / LOADING */
+        .typing-indicator { display: flex; align-items: center; gap: 4px; padding: 0.4rem 0.8rem; }
 
         .typing-dot {
-            width: 6px;
-            height: 6px;
+            width: 6px; height: 6px;
             background-color: var(--text-secondary);
             border-radius: 50%;
             animation: bounce 1.4s infinite ease-in-out both;
@@ -442,61 +395,44 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* WELCOME SCREEN PLACEHOLDER */
+        /* WELCOME */
         .welcome-card {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            flex: 1;
-            text-align: center;
-            padding: 3rem;
-            color: var(--text-secondary);
-            animation: fadeIn 0.4s ease-out;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            flex: 1; text-align: center; padding: 3rem;
+            color: var(--text-secondary); animation: fadeIn 0.4s ease-out;
         }
 
-        .welcome-card h2 {
-            font-size: 1.8rem;
-            margin-bottom: 0.8rem;
-        }
-
-        .welcome-card p {
-            max-width: 450px;
-            font-size: 0.95rem;
-            line-height: 1.5;
-        }
+        .welcome-card h2 { font-size: 1.8rem; margin-bottom: 0.8rem; }
+        .welcome-card p { max-width: 450px; font-size: 0.95rem; line-height: 1.5; }
     </style>
 </head>
 <body>
 
-    <!-- SYSTEM HEADER -->
     <header>
         <div class="brand">
             <div class="brand-icon">⚙️</div>
             <h1>Industrial Advisor System</h1>
         </div>
-        <div class="status-badge">
-            <div class="status-dot"></div>
-            <span>Operations Advisor Active</span>
+        <div class="header-right">
+            <div class="status-badge">
+                <div class="status-dot"></div>
+                <span>Operations Advisor Active</span>
+            </div>
         </div>
     </header>
 
-    <!-- CORE WORKSPACE -->
     <div class="workspace">
-        
-        <!-- LEFT SIDE: CHAT FEED -->
+
+        <!-- CHAT -->
         <div class="chat-container">
             <div class="messages-area" id="messages-area">
-                
-                <!-- Welcome greeting -->
                 <div class="welcome-card" id="welcome-card">
                     <h2>⚙️ Advisor Operations Console</h2>
                     <p>Welcome. I am fully integrated with your plant documents database. Ask me any question related to spare parts, maintenance schedules, SOP procedures, or compliance codes.</p>
                 </div>
-                
             </div>
-            
-            <!-- INPUT FIELD FOR QUERY -->
+
             <div class="input-area">
                 <form id="chat-form" onsubmit="handleQuery(event)">
                     <div class="input-wrapper">
@@ -507,72 +443,116 @@
             </div>
         </div>
 
-        <!-- RIGHT SIDE: CITATIONS BAR -->
+        <!-- RIGHT PANEL -->
         <div class="info-panel">
-            <div>
-                <div class="panel-section-title">Active Database</div>
-                <div class="overview-box">
-                    <strong>Bharat Steel Plant</strong><br>
-                    Connected collection: <code>industrial_knowledge</code><br>
-                    Total indexed documents: <strong>14 files</strong>
-                </div>
-            </div>
-            
-            <div>
-                <div class="panel-section-title">Retrieval Citations</div>
-                <div class="citations-list" id="citations-list">
-                    <div style="font-size:0.85rem; color: var(--text-secondary); font-style:italic;">No query submitted yet. Active citations will load here.</div>
-                </div>
-            </div>
-        </div>
 
+            <!-- TABS -->
+            <div class="panel-tabs">
+                <button class="panel-tab active" onclick="switchTab('citations', this)">📄 Citations</button>
+                <button class="panel-tab graph-tab" onclick="switchTab('graph', this)">🕸 Knowledge Graph</button>
+            </div>
+
+            <!-- CITATIONS TAB -->
+            <div class="tab-content active" id="tab-citations">
+                <div>
+                    <div class="panel-section-title">Active Database</div>
+                    <div class="overview-box">
+                        <strong>Bharat Steel Plant</strong><br>
+                        Connected collection: <code>industrial_knowledge</code><br>
+                        Total indexed documents: <strong>14 files</strong>
+                    </div>
+                </div>
+                <div>
+                    <div class="panel-section-title">Retrieval Citations</div>
+                    <div class="citations-list" id="citations-list">
+                        <div style="font-size:0.85rem; color: var(--text-secondary); font-style:italic;">
+                            No query submitted yet. Active citations will load here.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KNOWLEDGE GRAPH TAB -->
+            <div class="tab-content" id="tab-graph">
+                <div>
+                    <div class="panel-section-title">Graph Query</div>
+                    <div class="graph-controls">
+
+                        <input
+                            type="text"
+                            class="graph-input-field"
+                            id="graph-entity-input"
+                            placeholder="Entity name (e.g. PUMP-101)"
+                        />
+
+                        <select class="graph-select" id="graph-query-type">
+                            <option value="everything">Show everything about this entity</option>
+                            <option value="incidents">Equipment → Incidents → Regulations</option>
+                            <option value="parts">Parts used to repair this equipment</option>
+                            <option value="compliance">Compliance chain (equipment → regulations)</option>
+                        </select>
+
+                        <button class="graph-query-btn" id="graph-btn" onclick="handleGraphQuery()">
+                            Query Knowledge Graph
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="panel-section-title">
+                        Graph Results
+                        <span class="graph-count-badge" id="graph-count" style="display:none;"></span>
+                    </div>
+                    <div class="graph-results" id="graph-results">
+                        <div class="graph-empty">
+                            Enter an entity name and select a query type to traverse the graph.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
     </div>
 
     <script>
-        const messagesArea = document.getElementById('messages-area');
+        const messagesArea  = document.getElementById('messages-area');
         const citationsList = document.getElementById('citations-list');
-        const welcomeCard = document.getElementById('welcome-card');
-        const queryInput = document.getElementById('query-input');
+        const welcomeCard   = document.getElementById('welcome-card');
+        const queryInput    = document.getElementById('query-input');
 
-        // Markdown formatter helper function (handling simple bold, lists, and code blocks)
-        function parseMarkdown(text) {
-            if (!text) return "";
-            let html = text
-                // Escape HTML tags
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                // Code Blocks
-                .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
-                // Inline Code
-                .replace(/`([^`\n]+)`/g, '<code>$1</code>')
-                // Bold text
-                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-                // List items
-                .replace(/^\s*[-*]\s+(.+)$/gm, '<li>$1</li>')
-                // Clean lists wrapping
-                .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
-                // Paragraph spaces
-                .replace(/\n\n/g, '<br><br>')
-                .replace(/\n/g, '<br>');
-            return html;
+        // ── Tab switching ─────────────────────────────────
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.panel-tab').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+            btn.classList.add('active');
         }
 
-        function appendMessage(role, content, sources = null) {
-            // Remove welcome card if present
+        // ── Markdown parser ───────────────────────────────
+        function parseMarkdown(text) {
+            if (!text) return "";
+            return text
+                .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+                .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+                .replace(/`([^`\n]+)`/g, '<code>$1</code>')
+                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                .replace(/^\s*[-*]\s+(.+)$/gm, '<li>$1</li>')
+                .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+                .replace(/\n\n/g, '<br><br>')
+                .replace(/\n/g, '<br>');
+        }
+
+        // ── Chat helpers ──────────────────────────────────
+        function appendMessage(role, content) {
             if (welcomeCard) welcomeCard.style.display = 'none';
-
-            const messageDiv = document.createElement('div');
+            const messageDiv  = document.createElement('div');
             messageDiv.className = `message ${role}`;
-
-            const labelSpan = document.createElement('span');
+            const labelSpan   = document.createElement('span');
             labelSpan.className = 'message-label';
             labelSpan.textContent = role === 'user' ? 'Operator' : 'System Advisor';
-
-            const bubbleDiv = document.createElement('div');
+            const bubbleDiv   = document.createElement('div');
             bubbleDiv.className = 'message-bubble';
             bubbleDiv.innerHTML = role === 'user' ? content : parseMarkdown(content);
-
             messageDiv.appendChild(labelSpan);
             messageDiv.appendChild(bubbleDiv);
             messagesArea.appendChild(messageDiv);
@@ -583,23 +563,16 @@
             const loaderDiv = document.createElement('div');
             loaderDiv.className = 'message assistant';
             loaderDiv.id = 'temp-loader';
-
             const labelSpan = document.createElement('span');
             labelSpan.className = 'message-label';
             labelSpan.textContent = 'System Advisor';
-
             const bubbleDiv = document.createElement('div');
             bubbleDiv.className = 'message-bubble';
-            
-            const indicatorDiv = document.createElement('div');
-            indicatorDiv.className = 'typing-indicator';
-            indicatorDiv.innerHTML = `
+            bubbleDiv.innerHTML = `<div class="typing-indicator">
                 <div class="typing-dot"></div>
                 <div class="typing-dot"></div>
                 <div class="typing-dot"></div>
-            `;
-            bubbleDiv.appendChild(indicatorDiv);
-
+            </div>`;
             loaderDiv.appendChild(labelSpan);
             loaderDiv.appendChild(bubbleDiv);
             messagesArea.appendChild(loaderDiv);
@@ -611,60 +584,137 @@
             if (loader) loader.remove();
         }
 
+        // ── Citations renderer ────────────────────────────
         function renderCitations(sources) {
             citationsList.innerHTML = '';
             if (!sources || sources.length === 0) {
                 citationsList.innerHTML = '<div style="font-size:0.85rem; color: var(--text-secondary); font-style:italic;">No document vectors matched this query.</div>';
                 return;
             }
-
-            sources.forEach((src, idx) => {
+            sources.forEach((src) => {
                 const meta = src.metadata;
                 const scorePercentage = (src.score * 100).toFixed(1);
-
-                const cardDiv = document.createElement('div');
+                const cardDiv    = document.createElement('div');
                 cardDiv.className = 'citation-card';
-
-                const headerDiv = document.createElement('div');
+                const headerDiv  = document.createElement('div');
                 headerDiv.className = 'citation-header';
                 headerDiv.innerHTML = `
                     <span class="citation-title">📄 ${meta.source_file}</span>
                     <span class="citation-badge">Match: ${scorePercentage}%</span>
                 `;
-
-                const bodyDiv = document.createElement('div');
+                const bodyDiv    = document.createElement('div');
                 bodyDiv.className = 'citation-body';
                 bodyDiv.innerHTML = `
-                    <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.2rem;">Section: ${meta.section || 'General'}</div>
+                    <div style="font-weight:600; color:var(--text-primary); margin-bottom:0.2rem;">Section: ${meta.section || 'General'}</div>
                     <div class="citation-text">"${src.text}"</div>
                     <div class="citation-meta">
                         <span>Tag: ${meta.equipment_tags || 'None'}</span>
                         <span>Date: ${meta.filename_date || 'N/A'}</span>
                     </div>
                 `;
-
-                // Toggle click event to expand citation text
                 headerDiv.onclick = () => {
-                    const isDisplayed = bodyDiv.style.display === 'flex';
-                    bodyDiv.style.display = isDisplayed ? 'none' : 'flex';
+                    bodyDiv.style.display = bodyDiv.style.display === 'flex' ? 'none' : 'flex';
                 };
-
                 cardDiv.appendChild(headerDiv);
                 cardDiv.appendChild(bodyDiv);
                 citationsList.appendChild(cardDiv);
             });
         }
 
+        // ── Knowledge Graph query ─────────────────────────
+        async function handleGraphQuery() {
+            const entity    = document.getElementById('graph-entity-input').value.trim();
+            const queryType = document.getElementById('graph-query-type').value;
+            const resultsDiv = document.getElementById('graph-results');
+            const countBadge = document.getElementById('graph-count');
+            const btn        = document.getElementById('graph-btn');
+
+            if (!entity) {
+                resultsDiv.innerHTML = '<div class="graph-empty">Please enter an entity name first.</div>';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Querying...';
+            resultsDiv.innerHTML = '<div class="graph-empty">Traversing graph...</div>';
+            countBadge.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/graph', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ entity, query_type: queryType })
+                });
+
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const data = await response.json();
+                const results = data.results || [];
+
+                if (results.length === 0) {
+                    resultsDiv.innerHTML = `<div class="graph-empty">No graph results found for "<strong>${entity}</strong>".<br>Check the entity name matches exactly (e.g. PUMP-101).</div>`;
+                    return;
+                }
+
+                // Show count badge
+                countBadge.textContent = `${results.length} results`;
+                countBadge.style.display = 'inline-block';
+
+                // Render results
+                resultsDiv.innerHTML = '';
+                results.forEach(r => {
+                    const item = document.createElement('div');
+                    item.className = 'graph-result-item';
+
+                    if (queryType === 'everything') {
+                        item.innerHTML = `
+                            <div class="graph-node-type">${r.connected_type || 'Node'}</div>
+                            <div class="graph-node-value">
+                                <span class="graph-rel-tag">${r.relationship}</span>
+                                ${r.connected_id || '—'}
+                            </div>`;
+                    } else if (queryType === 'incidents') {
+                        item.innerHTML = `
+                            <div class="graph-node-type">Equipment → Incident → Regulation</div>
+                            <div class="graph-node-value">
+                                <strong>${r.equipment}</strong><br>
+                                <span class="graph-rel-tag">HAD_INCIDENT</span>${r.incident}<br>
+                                <span class="graph-rel-tag">GOVERNED_BY</span>${r.regulation}
+                            </div>`;
+                    } else if (queryType === 'parts') {
+                        item.innerHTML = `
+                            <div class="graph-node-type">Part → Equipment</div>
+                            <div class="graph-node-value">
+                                <span class="graph-rel-tag">USED_IN_REPAIR_OF</span>
+                                ${r.part} → ${r.equipment}
+                            </div>`;
+                    } else if (queryType === 'compliance') {
+                        item.innerHTML = `
+                            <div class="graph-node-type">Equipment → Regulation</div>
+                            <div class="graph-node-value">
+                                <strong>${r.equipment}</strong>
+                                <span class="graph-rel-tag">GOVERNED_BY</span>${r.regulation}
+                            </div>`;
+                    }
+                    resultsDiv.appendChild(item);
+                });
+
+            } catch (err) {
+                resultsDiv.innerHTML = `<div class="graph-empty">⚠️ Graph query failed: ${err.message}<br>Make sure the backend is running and Neo4j is active.</div>`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Query Knowledge Graph';
+            }
+        }
+
+        // ── RAG chat query ────────────────────────────────
         async function handleQuery(event) {
             event.preventDefault();
             const text = queryInput.value.trim();
             if (!text) return;
 
-            // Render operator prompt
             appendMessage('user', text);
             queryInput.value = '';
-
-            // Render processing status
             appendLoader();
 
             try {
@@ -674,22 +724,19 @@
                     body: JSON.stringify({ question: text })
                 });
 
-                if (!response.ok) {
-                    throw new Error(`HTTP Error: ${response.status}`);
-                }
+                if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
 
                 const result = await response.json();
-                
                 removeLoader();
-                // Render synthesized response
                 appendMessage('assistant', result.answer);
-                // Render citation cards side panel
                 renderCitations(result.sources);
+
+                // Auto-switch to citations tab when a RAG answer comes in
+                switchTab('citations', document.querySelector('.panel-tab:first-child'));
 
             } catch (err) {
                 removeLoader();
                 appendMessage('assistant', `⚠️ Sorry, a connection error occurred: ${err.message}. Please verify the backend is running.`);
-                console.error(err);
             }
         }
     </script>

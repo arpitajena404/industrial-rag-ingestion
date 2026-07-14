@@ -5,17 +5,29 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-# Add current folder to sys.path to allow absolute imports
+# Add current folder to sys.path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from rag import generate_answer
+
+try:
+    from graph_query import (
+        get_everything_about,
+        get_equipment_incidents_regulations,
+        get_parts_for_equipment,
+        get_compliance_chain,
+        get_all_equipment
+    )
+    GRAPH_AVAILABLE = True
+except Exception as e:
+    print(f"Warning: Knowledge graph unavailable — {e}")
+    GRAPH_AVAILABLE = False
 
 app = FastAPI(
     title="Industrial Knowledge Intelligence Center API",
     description="Backend API for querying industrial document vectors and generating answers via Gemini."
 )
 
-# Enable CORS for browser access
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -24,19 +36,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Define request schema
+# ── Request schemas ───────────────────────────────────
 class QueryRequest(BaseModel):
     question: str
 
+class GraphRequest(BaseModel):
+    entity: str
+    query_type: str
+
+# ── RAG endpoint ──────────────────────────────────────
 @app.post("/api/query")
 def query_rag_pipeline(request: QueryRequest):
-    """
-    POST API Endpoint
-    Receives user question, runs the ChromaDB retrieval, and asks Gemini to synthesize.
-    """
     if not request.question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty.")
-        
     try:
         result = generate_answer(request.question)
         return {
@@ -46,25 +58,47 @@ def query_rag_pipeline(request: QueryRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Setup Static Files Mounting
+# ── Graph endpoints ───────────────────────────────────
+@app.post("/api/graph")
+def query_knowledge_graph(request: GraphRequest):
+    if not GRAPH_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Knowledge graph is not available.")
+    if not request.entity.strip():
+        raise HTTPException(status_code=400, detail="Entity cannot be empty.")
+    try:
+        if request.query_type == "everything":
+            results = get_everything_about(request.entity)
+        elif request.query_type == "incidents":
+            results = get_equipment_incidents_regulations()
+        elif request.query_type == "parts":
+            results = get_parts_for_equipment(request.entity)
+        elif request.query_type == "compliance":
+            results = get_compliance_chain(request.entity)
+        else:
+            raise HTTPException(status_code=400, detail=f"Unknown query_type: {request.query_type}")
+        return {"results": results, "entity": request.entity, "query_type": request.query_type}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/graph/equipment")
+def list_equipment():
+    if not GRAPH_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Knowledge graph is not available.")
+    return {"equipment": get_all_equipment()}
+
+# ── Static files ──────────────────────────────────────
 static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
 os.makedirs(static_dir, exist_ok=True)
-
-# Mount the static directory to serve index.html at root "/"
 app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
 
 if __name__ == "__main__":
     import uvicorn
-    # Configure UTF-8 logs on Windows
     try:
         sys.stdout.reconfigure(encoding="utf-8")
     except AttributeError:
         pass
-        
     print("=" * 60)
     print("Industrial RAG FastAPI Server Launching")
     print("Available locally at: http://localhost:8000")
     print("=" * 60)
-    
-    # Run server on port 8000 with auto-reload enabled
     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
