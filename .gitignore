@@ -7,7 +7,17 @@ chroma_db/
 # Python cache & compiles
 __pycache__/
 *.pyc
+*.pyo
 
-# Local data outputs (processed chunks)
-data/processed/
+# Intermediate pipeline artifacts only
+data/processed/entities.jsonl
+
+# Logs
 *.log
+
+# Virtual environment
+.venv/
+
+# OS
+.DS_Store
+Thumbs.db

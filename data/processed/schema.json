@@ -1,0 +1,276 @@
+{
+  "node_types": {
+    "Document": {
+      "properties": [
+        "doc_type",
+        "source_file"
+      ],
+      "count": 8
+    },
+    "Person": {
+      "properties": [
+        "name"
+      ],
+      "count": 18
+    },
+    "Vendor": {
+      "properties": [
+        "name"
+      ],
+      "count": 34
+    },
+    "Equipment": {
+      "properties": [
+        "name"
+      ],
+      "count": 17
+    },
+    "Regulation": {
+      "properties": [
+        "name"
+      ],
+      "count": 9
+    },
+    "Part": {
+      "properties": [
+        "name"
+      ],
+      "count": 28
+    },
+    "Incident": {
+      "properties": [
+        "description"
+      ],
+      "count": 36
+    }
+  },
+  "relationship_types": [
+    {
+      "from": "Part",
+      "relationship": "USED_IN_REPAIR_OF",
+      "to": "Equipment",
+      "count": 8
+    },
+    {
+      "from": "Equipment",
+      "relationship": "HAD_INCIDENT",
+      "to": "Incident",
+      "count": 7
+    },
+    {
+      "from": "Equipment",
+      "relationship": "REPAIRED_BY",
+      "to": "Person",
+      "count": 4
+    },
+    {
+      "from": "Equipment",
+      "relationship": "GOVERNED_BY",
+      "to": "Regulation",
+      "count": 4
+    },
+    {
+      "from": "Part",
+      "relationship": "HAD_INCIDENT",
+      "to": "Incident",
+      "count": 1
+    }
+  ],
+  "entity_counts": {
+    "Document": 8,
+    "Person": 18,
+    "Vendor": 34,
+    "Equipment": 17,
+    "Regulation": 9,
+    "Part": 28,
+    "Incident": 36
+  },
+  "sample_values": {
+    "Document": {
+      "doc_type": [
+        "spreadsheet_register",
+        "inspection_report",
+        "abnormality_report",
+        "standard_operating_procedure",
+        "work_order"
+      ],
+      "source_file": [
+        "Spare_Parts_Inventory_PumpHouseB.xlsx",
+        "INS_2024_Q3_PUMP101_PUMP102_Inspection.docx",
+        "NMR_2024_0208_PUMP102_DryRunning.docx",
+        "SOP_BSP_UTL_005_Rev2_CentrifugalPump_Operation.docx",
+        "WO_2024_0312_PUMP101_Bearing_Replacement.docx"
+      ]
+    },
+    "Person": {
+      "name": [
+        "Sarvesh Singh",
+        "Ranjit Sharma",
+        "supervisor",
+        "Mohan Das",
+        "Sunil Patil"
+      ]
+    },
+    "Vendor": {
+      "name": [
+        "Siemens",
+        "Bharat Tanks Ltd.,",
+        "Forbes Marshall",
+        "KBL OEM",
+        "Kirloskar Brothers Limited (KBL OEM can be an abbreviation for KBL, so I added it to the list.)"
+      ]
+    },
+    "Equipment": {
+      "name": [
+        "VFD-102",
+        "STR-101",
+        "PUMP",
+        "Feed Tank T-201",
+        "DV-101"
+      ]
+    },
+    "Regulation": {
+      "name": [
+        "Factories Act 1948",
+        "IS 9137",
+        "IS 10596",
+        "IS 2372",
+        "BSP-MP-004"
+      ]
+    },
+    "Part": {
+      "name": [
+        "WR-SS316-D65",
+        "WR-SS316-D65-I",
+        "IMP-SS304-RD65",
+        "SFT-SS316-RD65",
+        "SFT-SLV-SS316"
+      ]
+    },
+    "Incident": {
+      "description": [
+        "Seal leakage in pump",
+        "Oil leakage from seal",
+        "Pump performance severely impacted. Failure likely within 1-2 weeks.",
+        "Feed Tank T-201 Low-Level Alarm on 08-Feb-2024",
+        "unusual smell from the pump area"
+      ]
+    }
+  },
+  "all_equipment": [
+    "Centrifugal Water Pumps",
+    "DV-101",
+    "DV-102",
+    "Feed Tank T-201",
+    "MTR-101",
+    "MTR-102",
+    "PI-101",
+    "PI-102",
+    "PUMP",
+    "PUMP-101",
+    "PUMP-102",
+    "STR-101",
+    "TANK-201",
+    "TANK-202",
+    "VFD-101",
+    "VFD-102",
+    "VYND-CP-007 (Yathi Pumps)"
+  ],
+  "all_regulations": [
+    "BSP-MP-004",
+    "BSP-SOP-UTL-007",
+    "Factories Act 1948",
+    "IS 10596",
+    "IS 2372",
+    "IS 9137",
+    "ISO 9001",
+    "OIS 9001 (DNV-GL)",
+    "OISD-117"
+  ],
+  "all_documents": [
+    {
+      "file": "NMR_2024_0208_PUMP102_DryRunning.docx",
+      "type": "abnormality_report"
+    },
+    {
+      "file": "AVL_CentrifugalPump_Vendors_PumpHouseB.xlsx",
+      "type": "approved_vendor_list"
+    },
+    {
+      "file": "INS_2024_Q3_PUMP101_PUMP102_Inspection.docx",
+      "type": "inspection_report"
+    },
+    {
+      "file": "Maintenance_Log_Performance_Equipment_Register_PumpHouseB.xlsx",
+      "type": "spreadsheet_register"
+    },
+    {
+      "file": "Spare_Parts_Inventory_PumpHouseB.xlsx",
+      "type": "spreadsheet_register"
+    },
+    {
+      "file": "SOP_BSP_UTL_005_Rev2_CentrifugalPump_Operation.docx",
+      "type": "standard_operating_procedure"
+    },
+    {
+      "file": "WO_2024_0312_PUMP101_Bearing_Replacement.docx",
+      "type": "work_order"
+    },
+    {
+      "file": "WO_2024_0618_PUMP102_Seal_Replacement.docx",
+      "type": "work_order"
+    }
+  ],
+  "most_connected": [
+    {
+      "label": "Equipment",
+      "id": "PUMP-101",
+      "degree": 16
+    },
+    {
+      "label": "Equipment",
+      "id": "PUMP-102",
+      "degree": 6
+    },
+    {
+      "label": "Incident",
+      "id": "premature bearing failure",
+      "degree": 2
+    },
+    {
+      "label": "Regulation",
+      "id": "OISD-117",
+      "degree": 2
+    },
+    {
+      "label": "Person",
+      "id": "Vikram Singh",
+      "degree": 2
+    },
+    {
+      "label": "Part",
+      "id": "MSHC100-500G",
+      "degree": 2
+    },
+    {
+      "label": "Incident",
+      "id": "Heat discolouration and micro-cracking on rotary face",
+      "degree": 1
+    },
+    {
+      "label": "Incident",
+      "id": "Dry running of mechanical seal February 8, 2024",
+      "degree": 1
+    },
+    {
+      "label": "Part",
+      "id": "Flowserve Type MX Single Cartridge Seal",
+      "degree": 1
+    },
+    {
+      "label": "Incident",
+      "id": "bearing failure in PUMP-101 in March 2024 due to vibration issue",
+      "degree": 1
+    }
+  ]
+}
