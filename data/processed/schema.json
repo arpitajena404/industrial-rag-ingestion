@@ -70,6 +70,18 @@
       "count": 4
     },
     {
+      "from": "Equipment",
+      "relationship": "INSPECTED_BY",
+      "to": "Person",
+      "count": 3
+    },
+    {
+      "from": "Person",
+      "relationship": "INSPECTED_BY",
+      "to": "Person",
+      "count": 1
+    },
+    {
       "from": "Part",
       "relationship": "HAD_INCIDENT",
       "to": "Incident",
@@ -95,65 +107,65 @@
         "work_order"
       ],
       "source_file": [
+        "Maintenance_Log_Performance_Equipment_Register_PumpHouseB.xlsx",
         "Spare_Parts_Inventory_PumpHouseB.xlsx",
         "INS_2024_Q3_PUMP101_PUMP102_Inspection.docx",
         "NMR_2024_0208_PUMP102_DryRunning.docx",
-        "SOP_BSP_UTL_005_Rev2_CentrifugalPump_Operation.docx",
-        "WO_2024_0312_PUMP101_Bearing_Replacement.docx"
+        "SOP_BSP_UTL_005_Rev2_CentrifugalPump_Operation.docx"
       ]
     },
     "Person": {
       "name": [
-        "Sarvesh Singh",
-        "Ranjit Sharma",
-        "supervisor",
-        "Mohan Das",
-        "Sunil Patil"
+        "Sunil Gupta",
+        "Himadri Sen",
+        "Ramesh Kumar",
+        "Kirti Kumar Kothari",
+        "Vikram Singh"
       ]
     },
     "Vendor": {
       "name": [
-        "Siemens",
-        "Bharat Tanks Ltd.,",
-        "Forbes Marshall",
-        "KBL OEM",
-        "Kirloskar Brothers Limited (KBL OEM can be an abbreviation for KBL, so I added it to the list.)"
+        "Fieldman Engineers Pvt. Ltd.",
+        "M/S Gupta Industrial Corporation",
+        "Matrix Iron Foundry (MIF)",
+        "Pumpsense Fluid Engineering Pvt. Ltd.",
+        "Sri Pumps & Fittings Industrial Corporation (SPFIC)"
       ]
     },
     "Equipment": {
       "name": [
-        "VFD-102",
-        "STR-101",
-        "PUMP",
-        "Feed Tank T-201",
-        "DV-101"
+        "Centrifugal Water Pumps",
+        "PUMP-101",
+        "TANK-201",
+        "VYND-CP-007 (Yathi Pumps)",
+        "PUMP-102"
       ]
     },
     "Regulation": {
       "name": [
+        "ISO 9001",
+        "OIS 9001 (DNV-GL)",
+        "OISD-117",
         "Factories Act 1948",
-        "IS 9137",
-        "IS 10596",
-        "IS 2372",
-        "BSP-MP-004"
+        "IS 9137"
       ]
     },
     "Part": {
       "name": [
-        "WR-SS316-D65",
-        "WR-SS316-D65-I",
-        "IMP-SS304-RD65",
-        "SFT-SS316-RD65",
-        "SFT-SLV-SS316"
+        "",
+        "SKF-6309-2RS",
+        "SKF-6306-2RS",
+        "Gasket DN65",
+        "Flowserve MX Cartridge Seal DN65 SiC/SiC x2"
       ]
     },
     "Incident": {
       "description": [
-        "Seal leakage in pump",
-        "Oil leakage from seal",
-        "Pump performance severely impacted. Failure likely within 1-2 weeks.",
-        "Feed Tank T-201 Low-Level Alarm on 08-Feb-2024",
-        "unusual smell from the pump area"
+        "",
+        "PUMP-101 DE bearing event (WO-2024-0312)",
+        "PUMP-101 Bearing Failure RCA",
+        "DE bearing failure March 2024",
+        "coupling grid element cracked"
       ]
     }
   },
@@ -225,12 +237,22 @@
     {
       "label": "Equipment",
       "id": "PUMP-101",
-      "degree": 16
+      "degree": 17
     },
     {
       "label": "Equipment",
       "id": "PUMP-102",
-      "degree": 6
+      "degree": 8
+    },
+    {
+      "label": "Person",
+      "id": "Prasad Iyer",
+      "degree": 4
+    },
+    {
+      "label": "Person",
+      "id": "Vikram Singh",
+      "degree": 3
     },
     {
       "label": "Incident",
@@ -240,11 +262,6 @@
     {
       "label": "Regulation",
       "id": "OISD-117",
-      "degree": 2
-    },
-    {
-      "label": "Person",
-      "id": "Vikram Singh",
       "degree": 2
     },
     {
@@ -259,17 +276,12 @@
     },
     {
       "label": "Incident",
-      "id": "Dry running of mechanical seal February 8, 2024",
-      "degree": 1
-    },
-    {
-      "label": "Part",
-      "id": "Flowserve Type MX Single Cartridge Seal",
+      "id": "DE bearing failure March 2024",
       "degree": 1
     },
     {
       "label": "Incident",
-      "id": "bearing failure in PUMP-101 in March 2024 due to vibration issue",
+      "id": "PUMP-101 got damaged  on 25 Mar 2024 due to wrong setting of valves and faulty pump seals",
       "degree": 1
     }
   ]

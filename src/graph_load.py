@@ -6,15 +6,20 @@ Reads entities.jsonl → loads nodes and relationships into Neo4j
 import json
 from neo4j import GraphDatabase
 from tqdm import tqdm
+import os
 
-# ── Connection ────────────────────────────────────────
-URI      = "bolt://localhost:7687"
-USERNAME = "neo4j"
-PASSWORD = "12345678"   # whatever you set in Neo4j Desktop
+from dotenv import load_dotenv
+load_dotenv(dotenv_path="../.env")
 
 ENTITIES_FILE = "../data/processed/entities.jsonl"
 
-driver = GraphDatabase.driver(URI, auth=(USERNAME, PASSWORD))
+driver = GraphDatabase.driver(
+    os.getenv("NEO4J_URI", "bolt://localhost:7687"),
+    auth=(
+        os.getenv("NEO4J_USERNAME", "neo4j"),
+        os.getenv("NEO4J_PASSWORD", "")
+    )
+)
 
 # ── Helper: run a Cypher query ────────────────────────
 def run(session, query, **params):
@@ -84,9 +89,13 @@ RELATIONSHIP_QUERIES = {
         MATCH (a {name: $from_name}), (b {name: $to_name})
         MERGE (a)-[:USED_IN_REPAIR_OF]->(b)
     """,
-    "PERFORMED": """
-        MATCH (a {name: $from_name}), (b {source_file: $to_name})
-        MERGE (a)-[:PERFORMED]->(b)
+    "PERFORMED_BY": """
+    MATCH (a {name: $from_name}), (b {name: $to_name})
+    MERGE (a)-[:PERFORMED_BY]->(b)
+    """,
+    "INSPECTED_BY": """
+    MATCH (a {name: $from_name}), (b {name: $to_name})
+    MERGE (a)-[:INSPECTED_BY]->(b)
     """,
     "SUPPLIES": """
         MATCH (a {name: $from_name}), (b {name: $to_name})

@@ -21,15 +21,20 @@ Output:
 import json
 from neo4j import GraphDatabase
 from collections import defaultdict
+import os
 
-# ── Connection ────────────────────────────────────────
-URI      = "bolt://localhost:7687"
-USERNAME = "neo4j"
-PASSWORD = "12345678"    # change this
+from dotenv import load_dotenv
+load_dotenv(dotenv_path="../.env")
 
 OUTPUT_FILE = "../data/processed/schema.json"
 
-driver = GraphDatabase.driver(URI, auth=(USERNAME, PASSWORD))
+driver = GraphDatabase.driver(
+    os.getenv("NEO4J_URI", "bolt://localhost:7687"),
+    auth=(
+        os.getenv("NEO4J_USERNAME", "neo4j"),
+        os.getenv("NEO4J_PASSWORD", "")
+    )
+)
 
 schema = {
     "node_types"        : {},
