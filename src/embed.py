@@ -10,9 +10,12 @@ What this does:
   4. Stores everything in ChromaDB with full metadata
   5. Runs a quick sanity-check query at the end to confirm it works
 
-How to run:
+How to run (full rebuild — deletes and re-embeds everything):
   pip install chromadb sentence-transformers tqdm
   python embed.py
+
+For incremental adds (used by ingest_new_document.py), import
+embed_new_chunks() instead — it does NOT delete the collection.
 
 Output:
   A ChromaDB database folder called `chroma_db/` in your project root.
@@ -37,79 +40,6 @@ EMBED_MODEL   = "all-MiniLM-L6-v2"              # free, fast, good quality
 BATCH_SIZE    = 64                               # how many chunks to embed at once
 MIN_CHARS     = 50                               # skip chunks shorter than this
 
-# ──────────────────────────────────────────────────────
-# STEP 1 — Load chunks
-# ──────────────────────────────────────────────────────
-
-print("=" * 55)
-print("  STEP 1: Loading chunks")
-print("=" * 55)
-
-chunks = []
-with open(CHUNKS_FILE, "r", encoding="utf-8") as f:
-    for line in f:
-        line = line.strip()
-        if line:
-            chunks.append(json.loads(line))
-
-print(f"  Total chunks loaded : {len(chunks)}")
-
-# Filter out very short chunks — they're usually headers or
-# page numbers that slipped through cleaning, not useful content
-chunks = [c for c in chunks if len(c["text"]) >= MIN_CHARS]
-print(f"  After filtering     : {len(chunks)} chunks (removed chunks < {MIN_CHARS} chars)")
-
-# Quick breakdown by document type so you can see what you're working with
-from collections import Counter
-type_counts = Counter(c["doc_type"] for c in chunks)
-print("\n  Breakdown by doc_type:")
-for dt, count in sorted(type_counts.items(), key=lambda x: -x[1]):
-    print(f"    {dt:<45} {count} chunks")
-
-# ──────────────────────────────────────────────────────
-# STEP 2 — Load the embedding model
-# ──────────────────────────────────────────────────────
-
-print("\n" + "=" * 55)
-print("  STEP 2: Loading embedding model")
-print("=" * 55)
-
-print(f"  Model: {EMBED_MODEL}")
-print("  (First run downloads ~90MB — subsequent runs use cache)")
-
-model = SentenceTransformer(EMBED_MODEL)
-print("  Model loaded.")
-
-# ──────────────────────────────────────────────────────
-# STEP 3 — Set up ChromaDB
-# ──────────────────────────────────────────────────────
-
-print("\n" + "=" * 55)
-print("  STEP 3: Setting up ChromaDB")
-print("=" * 55)
-
-client = chromadb.PersistentClient(path=CHROMA_DIR)
-
-# Delete existing collection if it exists — clean slate each run
-# Remove this block if you want to ADD to an existing collection
-existing = [c.name for c in client.list_collections()]
-if COLLECTION in existing:
-    print(f"  Deleting existing collection '{COLLECTION}' for clean re-run...")
-    client.delete_collection(COLLECTION)
-
-collection = client.create_collection(
-    name=COLLECTION,
-    metadata={"hnsw:space": "cosine"}   # cosine similarity — standard for text search
-)
-print(f"  Collection '{COLLECTION}' created.")
-
-# ──────────────────────────────────────────────────────
-# STEP 4 — Embed and store in batches
-# ──────────────────────────────────────────────────────
-
-print("\n" + "=" * 55)
-print("  STEP 4: Embedding chunks and storing in ChromaDB")
-print("=" * 55)
 
 def build_metadata(chunk: dict) -> dict:
     """
@@ -146,93 +76,198 @@ def build_metadata(chunk: dict) -> dict:
         "sheet_name"    : chunk.get("sheet_name") or "",
     }
 
-# Process in batches — embedding all 1142 at once can be slow
-total = len(chunks)
-for batch_start in tqdm(range(0, total, BATCH_SIZE), desc="  Embedding batches"):
-    batch = chunks[batch_start : batch_start + BATCH_SIZE]
 
-    # Extract the text for embedding
-    texts = [c["text"] for c in batch]
+# ──────────────────────────────────────────────────────
+# Incremental path — used by ingest_new_document.py
+# Adds ONLY the given chunks to the existing collection.
+# Never deletes anything. Safe to call repeatedly.
+# ──────────────────────────────────────────────────────
 
-    # Generate embeddings — returns a numpy array of shape (batch_size, 384)
+_cached_model = None
+
+def get_cached_model():
+    """Loads the SentenceTransformer model once and reuses it across calls —
+    avoids reloading the ~90MB model on every single ingest."""
+    global _cached_model
+    if _cached_model is None:
+        _cached_model = SentenceTransformer(EMBED_MODEL)
+    return _cached_model
+
+
+def embed_new_chunks(new_chunks: list) -> int:
+    """
+    Embeds and adds ONLY new_chunks to the existing ChromaDB collection.
+    Does NOT delete or rebuild — safe to call after every new document.
+    Returns the number of chunks actually embedded (after MIN_CHARS filtering).
+    """
+    if not new_chunks:
+        return 0
+
+    new_chunks = [c for c in new_chunks if len(c["text"]) >= MIN_CHARS]
+    if not new_chunks:
+        return 0
+
+    client = chromadb.PersistentClient(path=CHROMA_DIR)
+    collection = client.get_or_create_collection(
+        name=COLLECTION,
+        metadata={"hnsw:space": "cosine"}
+    )
+
+    model = get_cached_model()
+
+    texts = [c["text"] for c in new_chunks]
     embeddings = model.encode(texts, show_progress_bar=False)
 
-    # Build the three parallel lists ChromaDB expects
-    ids        = [c["chunk_id"] for c in batch]
-    metadatas  = [build_metadata(c) for c in batch]
-    documents  = texts   # ChromaDB stores the raw text separately from the vector
-
     collection.add(
-        ids        = ids,
-        embeddings = embeddings.tolist(),
-        metadatas  = metadatas,
-        documents  = documents,
+        ids=[c["chunk_id"] for c in new_chunks],
+        embeddings=embeddings.tolist(),
+        metadatas=[build_metadata(c) for c in new_chunks],
+        documents=texts,
     )
+    return len(new_chunks)
 
-print(f"\n  Done. {collection.count()} chunks stored in ChromaDB.")
 
 # ──────────────────────────────────────────────────────
-# STEP 5 — Sanity check: run 3 test queries
+# Full rebuild path — ONLY runs when you execute this file
+# directly (python embed.py). Never runs on import, so
+# ingest_new_document.py importing embed_new_chunks above
+# will NOT trigger this and wipe your data.
 # ──────────────────────────────────────────────────────
 
-print("\n" + "=" * 55)
-print("  STEP 5: Sanity check — test queries")
-print("=" * 55)
+if __name__ == "__main__":
 
-test_queries = [
-    "What was the vibration level on PUMP-101 before the bearing failed?",
-    "Which vendor is nearest to Bharat Steel Plant?",
-    "What corrective actions were taken after the dry running incident?",
-]
+    # ── STEP 1 — Load chunks ──────────────────────────
+    print("=" * 55)
+    print("  STEP 1: Loading chunks")
+    print("=" * 55)
 
-for query in test_queries:
-    print(f"\n  Query: \"{query}\"")
-    results = collection.query(
-        query_texts   = [query],
-        n_results     = 3,
-        include       = ["documents", "metadatas", "distances"]
+    chunks = []
+    with open(CHUNKS_FILE, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                chunks.append(json.loads(line))
+
+    print(f"  Total chunks loaded : {len(chunks)}")
+
+    chunks = [c for c in chunks if len(c["text"]) >= MIN_CHARS]
+    print(f"  After filtering     : {len(chunks)} chunks (removed chunks < {MIN_CHARS} chars)")
+
+    from collections import Counter
+    type_counts = Counter(c["doc_type"] for c in chunks)
+    print("\n  Breakdown by doc_type:")
+    for dt, count in sorted(type_counts.items(), key=lambda x: -x[1]):
+        print(f"    {dt:<45} {count} chunks")
+
+    # ── STEP 2 — Load the embedding model ─────────────
+    print("\n" + "=" * 55)
+    print("  STEP 2: Loading embedding model")
+    print("=" * 55)
+
+    print(f"  Model: {EMBED_MODEL}")
+    print("  (First run downloads ~90MB — subsequent runs use cache)")
+
+    model = get_cached_model()
+    print("  Model loaded.")
+
+    # ── STEP 3 — Set up ChromaDB ───────────────────────
+    print("\n" + "=" * 55)
+    print("  STEP 3: Setting up ChromaDB")
+    print("=" * 55)
+
+    client = chromadb.PersistentClient(path=CHROMA_DIR)
+
+    existing = [c.name for c in client.list_collections()]
+    if COLLECTION in existing:
+        print(f"  Deleting existing collection '{COLLECTION}' for clean re-run...")
+        client.delete_collection(COLLECTION)
+
+    collection = client.create_collection(
+        name=COLLECTION,
+        metadata={"hnsw:space": "cosine"}
     )
+    print(f"  Collection '{COLLECTION}' created.")
+
+    # ── STEP 4 — Embed and store in batches ───────────
+    print("\n" + "=" * 55)
+    print("  STEP 4: Embedding chunks and storing in ChromaDB")
+    print("=" * 55)
+
+    total = len(chunks)
+    for batch_start in tqdm(range(0, total, BATCH_SIZE), desc="  Embedding batches"):
+        batch = chunks[batch_start : batch_start + BATCH_SIZE]
+        texts = [c["text"] for c in batch]
+        embeddings = model.encode(texts, show_progress_bar=False)
+
+        ids        = [c["chunk_id"] for c in batch]
+        metadatas  = [build_metadata(c) for c in batch]
+        documents  = texts
+
+        collection.add(
+            ids        = ids,
+            embeddings = embeddings.tolist(),
+            metadatas  = metadatas,
+            documents  = documents,
+        )
+
+    print(f"\n  Done. {collection.count()} chunks stored in ChromaDB.")
+
+    # ── STEP 5 — Sanity check: run 3 test queries ─────
+    print("\n" + "=" * 55)
+    print("  STEP 5: Sanity check — test queries")
+    print("=" * 55)
+
+    test_queries = [
+        "What was the vibration level on PUMP-101 before the bearing failed?",
+        "Which vendor is nearest to Bharat Steel Plant?",
+        "What corrective actions were taken after the dry running incident?",
+    ]
+
+    for query in test_queries:
+        print(f"\n  Query: \"{query}\"")
+        results = collection.query(
+            query_texts   = [query],
+            n_results     = 3,
+            include       = ["documents", "metadatas", "distances"]
+        )
+        for i, (doc, meta, dist) in enumerate(zip(
+            results["documents"][0],
+            results["metadatas"][0],
+            results["distances"][0]
+        )):
+            score = round(1 - dist, 3)
+            print(f"    [{i+1}] Score={score} | {meta['source_file']} | {meta['doc_type']}")
+            print(f"         \"{doc[:120]}...\"")
+
+    # ── STEP 6 — Filtered query example ───────────────
+    print("\n" + "=" * 55)
+    print("  STEP 6: Filtered query example")
+    print("  (Only work_order chunks mentioning PUMP-101)")
+    print("=" * 55)
+
+    filtered = collection.query(
+        query_texts    = ["bearing replacement maintenance"],
+        n_results      = 3,
+        where          = {
+            "$and": [
+                {"doc_type"      : {"$eq": "work_order"}},
+                {"equipment_tags": {"$contains": "PUMP-101"}},
+            ]
+        },
+        include        = ["documents", "metadatas", "distances"]
+    )
+
     for i, (doc, meta, dist) in enumerate(zip(
-        results["documents"][0],
-        results["metadatas"][0],
-        results["distances"][0]
+        filtered["documents"][0],
+        filtered["metadatas"][0],
+        filtered["distances"][0]
     )):
-        score = round(1 - dist, 3)   # cosine distance → similarity score
-        print(f"    [{i+1}] Score={score} | {meta['source_file']} | {meta['doc_type']}")
-        print(f"         \"{doc[:120]}...\"")
+        score = round(1 - dist, 3)
+        print(f"  [{i+1}] Score={score} | {meta['source_file']}")
+        print(f"       \"{doc[:150]}...\"")
 
-# ──────────────────────────────────────────────────────
-# STEP 6 — Filter query example (by doc_type + equipment)
-# ──────────────────────────────────────────────────────
-
-print("\n" + "=" * 55)
-print("  STEP 6: Filtered query example")
-print("  (Only work_order chunks mentioning PUMP-101)")
-print("=" * 55)
-
-filtered = collection.query(
-    query_texts    = ["bearing replacement maintenance"],
-    n_results      = 3,
-    where          = {
-        "$and": [
-            {"doc_type"      : {"$eq": "work_order"}},
-            {"equipment_tags": {"$contains": "PUMP-101"}},
-        ]
-    },
-    include        = ["documents", "metadatas", "distances"]
-)
-
-for i, (doc, meta, dist) in enumerate(zip(
-    filtered["documents"][0],
-    filtered["metadatas"][0],
-    filtered["distances"][0]
-)):
-    score = round(1 - dist, 3)
-    print(f"  [{i+1}] Score={score} | {meta['source_file']}")
-    print(f"       \"{doc[:150]}...\"")
-
-print("\n" + "=" * 55)
-print("  ALL DONE.")
-print(f"  ChromaDB stored at: ./{CHROMA_DIR}/")
-print("  Hand the chroma_db/ folder path to Person D.")
-print("=" * 55)
+    print("\n" + "=" * 55)
+    print("  ALL DONE.")
+    print(f"  ChromaDB stored at: ./{CHROMA_DIR}/")
+    print("  Hand the chroma_db/ folder path to Person D.")
+    print("=" * 55)

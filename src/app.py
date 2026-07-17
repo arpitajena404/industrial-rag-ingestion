@@ -1,14 +1,16 @@
 import os
 import sys
-from fastapi import FastAPI, HTTPException
+import shutil
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-# Add current folder to sys.path
+# Add current folder to sys.path — must happen before importing local modules
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from rag import generate_answer
+from ingest_new_document import ingest_new_document
 
 try:
     from graph_query import (
@@ -35,6 +37,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+UPLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../data/uploads")
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 # ── Request schemas ───────────────────────────────────
 class QueryRequest(BaseModel):
@@ -85,6 +90,21 @@ def list_equipment():
     if not GRAPH_AVAILABLE:
         raise HTTPException(status_code=503, detail="Knowledge graph is not available.")
     return {"equipment": get_all_equipment()}
+
+# ── Ingest endpoint ────────────────────────────────────
+@app.post("/api/ingest")
+def ingest_document(file: UploadFile = File(...)):
+    # Filename is kept exactly as uploaded (not renamed) — metadata.py's
+    # classify_doc_type() depends on the filename prefix (e.g. "WO_" -> work_order),
+    # so renaming here would break doc_type classification for every new upload.
+    saved_path = os.path.join(UPLOAD_DIR, file.filename)
+    with open(saved_path, "wb") as f:
+        shutil.copyfileobj(file.file, f)
+    try:
+        result = ingest_new_document(saved_path)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # ── Static files ──────────────────────────────────────
 static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")

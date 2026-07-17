@@ -5,9 +5,10 @@ This module implements the core RAG (Retrieval-Augmented Generation) pipeline:
 1. Converts the user's natural language question into a semantic vector.
 2. Connects to our local persistent ChromaDB to perform a vector search.
 3. Retrieves the top-K matching document chunks (with original metadata).
-4. Formulates a system prompt injecting the retrieved context chunks.
-5. Sends the combined prompt to Groq (llama-3.3-70b) for synthesis.
-6. Returns the human-like summarized answer along with original source citations.
+4. Applies feedback-based score adjustments from past thumbs up/down votes.
+5. Formulates a system prompt injecting the retrieved context chunks.
+6. Sends the combined prompt to Groq (llama-3.3-70b) for synthesis.
+7. Returns the human-like summarized answer along with original source citations.
 """
 
 import os
@@ -15,21 +16,19 @@ from sentence_transformers import SentenceTransformer
 import chromadb
 from dotenv import load_dotenv
 from groq import Groq
+from feedback import get_chunk_adjustments
 
 # 1. LOAD CONFIGURATION
 dotenv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.env"))
 load_dotenv(dotenv_path=dotenv_path)
 
-# Paths and variables matching our ingestion pipelines
 CHROMA_DIR      = os.path.abspath(os.path.join(os.path.dirname(__file__), "../chroma_db"))
 COLLECTION_NAME = "industrial_knowledge"
 EMBED_MODEL     = "all-MiniLM-L6-v2"
 
-# Local sentence transformer instance (loaded lazily on the first function call)
 _model = None
 
 def get_embedding_model():
-    """Lazily instantiates and caches the SentenceTransformer model to save memory."""
     global _model
     if _model is None:
         _model = SentenceTransformer(EMBED_MODEL)
@@ -40,7 +39,10 @@ def retrieve_context(query: str, top_k: int = 5):
     Retrieval Component
     - Vectorizes the user query.
     - Connects to ChromaDB.
-    - Searches for chunks closest in the multi-dimensional vector space.
+    - Retrieves MORE candidates than top_k, applies feedback adjustments,
+      re-sorts, then trims to top_k — so a downvoted chunk can actually
+      drop out of the final results, not just get slightly reordered
+      within a too-small candidate set.
     """
     client = chromadb.PersistentClient(path=CHROMA_DIR)
 
@@ -56,45 +58,51 @@ def retrieve_context(query: str, top_k: int = 5):
     model = get_embedding_model()
     query_embedding = model.encode([query])[0].tolist()
 
+    fetch_k = top_k + 5  # widen the candidate pool before feedback re-ranking
+
     results = collection.query(
         query_embeddings=[query_embedding],
-        n_results=top_k,
+        n_results=fetch_k,
         include=["documents", "metadatas", "distances"]
     )
 
-    retrieved_docs = []
+    candidates = []
     if results and "documents" in results and results["documents"]:
         for doc, meta, dist in zip(
             results["documents"][0],
             results["metadatas"][0],
             results["distances"][0]
         ):
-            retrieved_docs.append({
+            candidates.append({
                 "text"    : doc,
                 "metadata": meta,
                 "score"   : round(1.0 - dist, 4)
             })
 
-    return retrieved_docs
+    # Apply feedback-based adjustments, then re-sort and trim to top_k
+    adjustments = get_chunk_adjustments()
+    for c in candidates:
+        chunk_id = c["metadata"].get("chunk_id", "")
+        c["score"] = round(c["score"] + adjustments.get(chunk_id, 0), 4)
+
+    candidates.sort(key=lambda c: c["score"], reverse=True)
+    return candidates[:top_k]
 
 def generate_answer(query: str, top_k: int = 5):
     """
     Augmentation and Generation Component
-    - Fetches the vector search context from ChromaDB.
+    - Fetches the (feedback-adjusted) vector search context from ChromaDB.
     - Injects it into the system prompt.
     - Calls Groq llama-3.3-70b to generate a cited response.
     """
-    # 1. Fetch relevant chunks
     docs = retrieve_context(query, top_k=top_k)
 
-    # 2. Format context string
     context_str = ""
     for i, doc in enumerate(docs, 1):
         meta = doc["metadata"]
         context_str += f"--- Document {i} (Source: {meta.get('source_file')}, Section: {meta.get('section', 'General')}) ---\n"
         context_str += f"{doc['text']}\n\n"
 
-    # 3. Call Groq
     groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
     response = groq_client.chat.completions.create(
@@ -129,7 +137,6 @@ def generate_answer(query: str, top_k: int = 5):
         "sources": docs
     }
 
-# LOCAL TERMINAL EXECUTION
 if __name__ == "__main__":
     import sys
     try:

@@ -66,6 +66,7 @@
             font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 700;
             background: linear-gradient(to right, #FFFFFF, var(--text-secondary));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .header-right { display: flex; align-items: center; gap: 1rem; }
@@ -86,13 +87,75 @@
             box-shadow: 0 0 8px var(--accent-emerald);
         }
 
-        /* WORKSPACE */
+        /* WORKSPACE — three columns: ingest | chat | info */
         .workspace { display: flex; flex: 1; overflow: hidden; }
+
+        /* INGEST PANEL (leftmost) */
+        .ingest-panel {
+            flex: 1.3;
+            display: flex; flex-direction: column;
+            background: rgba(15, 23, 42, 0.35);
+            backdrop-filter: blur(8px);
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
+
+        .ingest-panel-header {
+            font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1px;
+            color: var(--text-secondary); margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+
+        .ingest-panel-header .dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--accent-emerald);
+            box-shadow: 0 0 8px var(--accent-emerald);
+        }
+
+        .ingest-box {
+            background: rgba(16, 185, 129, 0.04);
+            border: 1px solid rgba(16, 185, 129, 0.15);
+            border-radius: 10px; padding: 1.2rem;
+            display: flex; flex-direction: column; gap: 0.8rem;
+        }
+
+        .ingest-file-input {
+            font-size: 0.8rem; color: var(--text-secondary);
+            width: 100%;
+        }
+
+        .ingest-status {
+            font-size: 0.78rem; color: var(--text-secondary);
+            line-height: 1.4; min-height: 1.2em;
+        }
+
+        .ingest-status.success { color: var(--accent-emerald); }
+        .ingest-status.error { color: #F87171; }
+
+        .ingest-submit-btn {
+            width: 100%; padding: 0.7rem;
+            background: linear-gradient(135deg, var(--accent-emerald), #059669);
+            color: white; border: none; border-radius: 8px;
+            font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 0.9rem;
+            cursor: pointer; transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+        }
+        .ingest-submit-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .ingest-submit-btn:active { transform: translateY(0); }
+        .ingest-submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .ingest-hint {
+            font-size: 0.78rem; color: var(--text-secondary);
+            line-height: 1.5; margin-top: 1.2rem;
+        }
 
         /* CHAT */
         .chat-container {
             display: flex; flex-direction: column;
-            flex: 3.5;
+            flex: 3;
             border-right: 1px solid var(--border-color);
             background: rgba(7, 10, 19, 0.2);
         }
@@ -155,6 +218,18 @@
         }
         .message-bubble pre code { background: none; padding: 0; font-size: 0.85rem; }
 
+        /* FEEDBACK */
+        .feedback-row { display: flex; gap: 0.5rem; margin-top: 0.8rem; }
+        .feedback-btn {
+            background: rgba(255,255,255,0.04); border: 1px solid var(--border-color);
+            color: var(--text-secondary); border-radius: 6px; padding: 0.3rem 0.6rem;
+            font-size: 0.8rem; cursor: pointer; transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        .feedback-btn:hover { border-color: var(--accent-cyan); color: var(--text-primary); }
+        .feedback-btn.selected.up { border-color: var(--accent-emerald); color: var(--accent-emerald); }
+        .feedback-btn.selected.down { border-color: #F87171; color: #F87171; }
+
         /* INPUT */
         .input-area {
             padding: 1.5rem 2rem;
@@ -195,7 +270,7 @@
 
         /* RIGHT PANEL */
         .info-panel {
-            flex: 1; display: flex; flex-direction: column;
+            flex: 1.8; display: flex; flex-direction: column;
             background: rgba(15, 23, 42, 0.35);
             backdrop-filter: blur(8px);
             overflow: hidden;
@@ -424,6 +499,19 @@
 
     <div class="workspace">
 
+        <!-- INGEST PANEL (leftmost) -->
+        <div class="ingest-panel">
+            <div class="ingest-panel-header"><span class="dot"></span> Live Ingest</div>
+            <div class="ingest-box">
+                <input type="file" id="ingest-file-input" class="ingest-file-input" accept=".pdf,.docx,.doc,.xlsx,.xls" />
+                <button class="ingest-submit-btn" id="ingest-btn" onclick="handleIngest()">Ingest New Document</button>
+                <div class="ingest-status" id="ingest-status">Select a new work order or report to feed it into the pipeline live.</div>
+            </div>
+            <div class="ingest-hint">
+                This runs the full pipeline in real time: document parsing → cleaning → chunking → embedding → entity extraction → knowledge graph update. Continuous Learning Demo.
+            </div>
+        </div>
+
         <!-- CHAT -->
         <div class="chat-container">
             <div class="messages-area" id="messages-area">
@@ -520,6 +608,11 @@
         const welcomeCard   = document.getElementById('welcome-card');
         const queryInput    = document.getElementById('query-input');
 
+        // ── State for feedback (last query/answer/sources) ─
+        let lastQuery = "";
+        let lastAnswer = "";
+        let lastSources = [];
+
         // ── Tab switching ─────────────────────────────────
         function switchTab(tabId, btn) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -584,6 +677,41 @@
             if (loader) loader.remove();
         }
 
+        // ── Feedback ───────────────────────────────────────
+        function appendFeedbackRow() {
+            const row = document.createElement('div');
+            row.className = 'feedback-row';
+            row.innerHTML = `
+                <button class="feedback-btn" onclick="handleFeedback('up', this)">👍 Helpful</button>
+                <button class="feedback-btn" onclick="handleFeedback('down', this)">👎 Not helpful</button>
+            `;
+            const lastMessage = messagesArea.lastElementChild;
+            lastMessage.querySelector('.message-bubble').appendChild(row);
+        }
+
+        async function handleFeedback(rating, btn) {
+            const row = btn.parentElement;
+            row.querySelectorAll('.feedback-btn').forEach(b => b.classList.remove('selected', 'up', 'down'));
+            btn.classList.add('selected', rating);
+
+            const chunkIds = lastSources.map(s => s.metadata.chunk_id).filter(Boolean);
+
+            try {
+                await fetch('/api/feedback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        question: lastQuery,
+                        answer: lastAnswer,
+                        chunk_ids: chunkIds,
+                        rating: rating
+                    })
+                });
+            } catch (err) {
+                console.error('Feedback submission failed:', err);
+            }
+        }
+
         // ── Citations renderer ────────────────────────────
         function renderCitations(sources) {
             citationsList.innerHTML = '';
@@ -621,6 +749,53 @@
             });
         }
 
+        // ── Live ingest ────────────────────────────────────
+        async function handleIngest() {
+            const fileInput  = document.getElementById('ingest-file-input');
+            const statusDiv  = document.getElementById('ingest-status');
+            const btn        = document.getElementById('ingest-btn');
+
+            if (!fileInput.files.length) {
+                statusDiv.textContent = 'Select a file first.';
+                statusDiv.className = 'ingest-status error';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            btn.disabled = true;
+            btn.textContent = 'Processing...';
+            statusDiv.className = 'ingest-status';
+            statusDiv.textContent = 'Processing document — this can take 20-60s (document parsing, embedding, entity extraction, graph load). Please wait...';
+
+            try {
+                const response = await fetch('/api/ingest', { method: 'POST', body: formData });
+                const result = await response.json();
+
+                if (result.status === 'ok') {
+                    statusDiv.className = 'ingest-status success';
+                    statusDiv.textContent =
+                        `Done — "${result.file}" classified as ${result.doc_type}, ` +
+                        `${result.chunks_created} chunks created, ${result.chunks_embedded} embedded, ` +
+                        `graph updated: ${result.graph_updated}. Try querying this equipment now.`;
+                    fileInput.value = '';
+                } else if (result.status === 'duplicate') {
+                    statusDiv.className = 'ingest-status error';
+                    statusDiv.textContent = `Skipped — ${result.detail}`;
+                } else {
+                    statusDiv.className = 'ingest-status error';
+                    statusDiv.textContent = `Error: ${result.detail || 'Ingestion failed.'}`;
+                }
+            } catch (err) {
+                statusDiv.className = 'ingest-status error';
+                statusDiv.textContent = `Failed: ${err.message}`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Ingest New Document';
+            }
+        }
+
         // ── Knowledge Graph query ─────────────────────────
         async function handleGraphQuery() {
             const entity    = document.getElementById('graph-entity-input').value.trim();
@@ -656,11 +831,9 @@
                     return;
                 }
 
-                // Show count badge
                 countBadge.textContent = `${results.length} results`;
                 countBadge.style.display = 'inline-block';
 
-                // Render results
                 resultsDiv.innerHTML = '';
                 results.forEach(r => {
                     const item = document.createElement('div');
@@ -730,8 +903,12 @@
                 removeLoader();
                 appendMessage('assistant', result.answer);
                 renderCitations(result.sources);
+                appendFeedbackRow();
 
-                // Auto-switch to citations tab when a RAG answer comes in
+                lastQuery = text;
+                lastAnswer = result.answer;
+                lastSources = result.sources || [];
+
                 switchTab('citations', document.querySelector('.panel-tab:first-child'));
 
             } catch (err) {
