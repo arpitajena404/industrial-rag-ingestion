@@ -1,6 +1,8 @@
 import os
 import sys
 import shutil
+import json
+from typing import List, Optional
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -11,6 +13,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from rag import generate_answer
 from ingest_new_document import ingest_new_document
+from feedback import submit_feedback
 
 try:
     from graph_query import (
@@ -48,6 +51,13 @@ class QueryRequest(BaseModel):
 class GraphRequest(BaseModel):
     entity: str
     query_type: str
+
+class FeedbackRequest(BaseModel):
+    question: str
+    answer: str
+    chunk_ids: List[str]
+    rating: str  # "up" or "down"
+    correction: Optional[str] = None
 
 # ── RAG endpoint ──────────────────────────────────────
 @app.post("/api/query")
@@ -105,6 +115,39 @@ def ingest_document(file: UploadFile = File(...)):
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# ── Feedback endpoint ─────────────────────────────────
+@app.post("/api/feedback")
+def feedback_endpoint(request: FeedbackRequest):
+    if request.rating not in ("up", "down"):
+        raise HTTPException(status_code=400, detail="rating must be 'up' or 'down'")
+    try:
+        result = submit_feedback(
+            question=request.question,
+            answer=request.answer,
+            chunk_ids=request.chunk_ids,
+            rating=request.rating,
+            correction=request.correction,
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/stats")
+def get_stats():
+    chunks_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../data/processed/chunks.jsonl")
+    total_chunks = 0
+    source_files = set()
+    if os.path.exists(chunks_file):
+        with open(chunks_file, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                record = json.loads(line)
+                total_chunks += 1
+                source_files.add(record.get("source_file", ""))
+    return {"total_chunks": total_chunks, "total_documents": len(source_files)}
 
 # ── Static files ──────────────────────────────────────
 static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")

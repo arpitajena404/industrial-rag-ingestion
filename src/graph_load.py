@@ -21,6 +21,25 @@ driver = GraphDatabase.driver(
     )
 )
 
+def _to_name(value) -> str:
+    """
+    Coerces a single entity value into a safe string for Neo4j.
+    Handles the LLM occasionally returning a dict (e.g. {"name": "...", "part_no": "..."})
+    or a list instead of the expected plain string.
+    Returns "" for anything unusable — callers skip empty results.
+    """
+    if isinstance(value, str):
+        return value.strip()
+    if isinstance(value, dict):
+        # Prefer a "name" or "description" key if present, else join all values
+        for key in ("name", "description", "part_name", "part_no"):
+            if key in value and isinstance(value[key], str):
+                return value[key].strip()
+        return " ".join(str(v) for v in value.values() if isinstance(v, str)).strip()
+    if isinstance(value, list):
+        return _to_name(value[0]) if value else ""
+    return str(value).strip() if value else ""
+
 # ── Helper: run a Cypher query ────────────────────────
 def run(session, query, **params):
     session.run(query, **params)
@@ -124,6 +143,7 @@ print(f"Loaded {len(records)} extraction results")
 with driver.session() as session:
 
     # Pass 1 — create all nodes first
+    # Pass 1 — create all nodes first
     print("\nPass 1: Creating nodes...")
     for record in tqdm(records):
         source_file = record["source_file"]
@@ -132,12 +152,24 @@ with driver.session() as session:
 
         create_document(session, source_file, doc_type)
 
-        for name in entities.get("equipment",   []): create_equipment (session, name)
-        for name in entities.get("people",      []): create_person    (session, name)
-        for name in entities.get("regulations", []): create_regulation(session, name)
-        for name in entities.get("parts",       []): create_part      (session, name)
-        for name in entities.get("incidents",   []): create_incident  (session, name)
-        for name in entities.get("vendors",     []): create_vendor    (session, name)
+        for raw in entities.get("equipment",   []):
+            name = _to_name(raw)
+            if name: create_equipment(session, name)
+        for raw in entities.get("people",      []):
+            name = _to_name(raw)
+            if name: create_person(session, name)
+        for raw in entities.get("regulations", []):
+            name = _to_name(raw)
+            if name: create_regulation(session, name)
+        for raw in entities.get("parts",       []):
+            name = _to_name(raw)
+            if name: create_part(session, name)
+        for raw in entities.get("incidents",   []):
+            name = _to_name(raw)
+            if name: create_incident(session, name)
+        for raw in entities.get("vendors",     []):
+            name = _to_name(raw)
+            if name: create_vendor(session, name)
 
     # Pass 2 — create all relationships
     print("\nPass 2: Creating relationships...")

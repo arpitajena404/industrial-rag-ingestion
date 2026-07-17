@@ -547,7 +547,7 @@
                     <div class="overview-box">
                         <strong>Bharat Steel Plant</strong><br>
                         Connected collection: <code>industrial_knowledge</code><br>
-                        Total indexed documents: <strong>14 files</strong>
+                        Total indexed documents: <strong id="doc-count">...</strong>
                     </div>
                 </div>
                 <div>
@@ -780,6 +780,16 @@
                         `${result.chunks_created} chunks created, ${result.chunks_embedded} embedded, ` +
                         `graph updated: ${result.graph_updated}. Try querying this equipment now.`;
                     fileInput.value = '';
+                    async function refreshStats() {
+                        try {
+                            const res = await fetch('/api/stats');
+                            const data = await res.json();
+                            document.getElementById('doc-count').textContent = `${data.total_documents} files`;
+                        } catch (err) {
+                            console.error('Failed to fetch stats:', err);
+                        }
+                    }
+                    refreshStats(); // run once on page load
                 } else if (result.status === 'duplicate') {
                     statusDiv.className = 'ingest-status error';
                     statusDiv.textContent = `Skipped — ${result.detail}`;

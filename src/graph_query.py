@@ -10,8 +10,11 @@ import os
 load_dotenv(dotenv_path="../.env")
 
 driver = GraphDatabase.driver(
-    "bolt://localhost:7687",
-    auth=("neo4j", os.getenv("NEO4J_PASSWORD", "your_password_here"))
+    os.getenv("NEO4J_URI", "bolt://localhost:7687"),
+    auth=(
+        os.getenv("NEO4J_USERNAME", "neo4j"),
+        os.getenv("NEO4J_PASSWORD", "")
+    )
 )
 
 def get_everything_about(entity_name: str) -> list:
