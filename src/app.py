@@ -14,6 +14,15 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from rag import generate_answer
 from ingest_new_document import ingest_new_document
 from feedback import submit_feedback
+from compliance import get_deviations, get_preset_readings, get_available_items
+from graph_query import (
+    get_everything_about,
+    get_equipment_incidents_regulations,
+    get_parts_for_equipment,
+    get_compliance_chain,
+    get_all_equipment,
+    get_graph_visualization
+)
 
 try:
     from graph_query import (
@@ -59,6 +68,10 @@ class FeedbackRequest(BaseModel):
     rating: str  # "up" or "down"
     correction: Optional[str] = None
 
+class DeviationRequest(BaseModel):
+    equipment: str
+    readings: dict
+
 # ── RAG endpoint ──────────────────────────────────────
 @app.post("/api/query")
 def query_rag_pipeline(request: QueryRequest):
@@ -100,6 +113,15 @@ def list_equipment():
     if not GRAPH_AVAILABLE:
         raise HTTPException(status_code=503, detail="Knowledge graph is not available.")
     return {"equipment": get_all_equipment()}
+
+@app.get("/api/graph/visualize")
+def graph_visualize(equipment: str = None, limit: int = 150):
+    if not GRAPH_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Knowledge graph is not available.")
+    try:
+        return get_graph_visualization(equipment_name=equipment, limit=limit)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # ── Ingest endpoint ────────────────────────────────────
 @app.post("/api/ingest")
@@ -148,6 +170,31 @@ def get_stats():
                 total_chunks += 1
                 source_files.add(record.get("source_file", ""))
     return {"total_chunks": total_chunks, "total_documents": len(source_files)}
+
+@app.post("/api/compliance/check")
+def check_compliance(request: DeviationRequest):
+    if not request.equipment.strip():
+        raise HTTPException(status_code=400, detail="Equipment name cannot be empty.")
+    if not request.readings:
+        raise HTTPException(status_code=400, detail="No readings provided.")
+    try:
+        result = get_deviations(request.equipment, request.readings)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/compliance/preset/{equipment}")
+def get_preset(equipment: str):
+    readings = get_preset_readings(equipment)
+    if not readings:
+        raise HTTPException(status_code=404, detail=f"No preset readings for {equipment}")
+    return {"equipment": equipment, "readings": readings}
+
+
+@app.get("/api/compliance/items")
+def list_inspection_items():
+    return {"items": get_available_items()}
 
 # ── Static files ──────────────────────────────────────
 static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")

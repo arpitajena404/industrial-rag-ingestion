@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
     <style>
         :root {
             --bg-color: #070A13;
@@ -38,7 +39,6 @@
                 radial-gradient(circle at 88% 82%, rgba(59, 130, 246, 0.04) 0%, transparent 45%);
         }
 
-        /* HEADER */
         header {
             display: flex;
             justify-content: space-between;
@@ -87,10 +87,8 @@
             box-shadow: 0 0 8px var(--accent-emerald);
         }
 
-        /* WORKSPACE — three columns: ingest | chat | info */
         .workspace { display: flex; flex: 1; overflow: hidden; }
 
-        /* INGEST PANEL (leftmost) */
         .ingest-panel {
             flex: 1.3;
             display: flex; flex-direction: column;
@@ -152,7 +150,6 @@
             line-height: 1.5; margin-top: 1.2rem;
         }
 
-        /* CHAT */
         .chat-container {
             display: flex; flex-direction: column;
             flex: 3;
@@ -218,7 +215,6 @@
         }
         .message-bubble pre code { background: none; padding: 0; font-size: 0.85rem; }
 
-        /* FEEDBACK */
         .feedback-row { display: flex; gap: 0.5rem; margin-top: 0.8rem; }
         .feedback-btn {
             background: rgba(255,255,255,0.04); border: 1px solid var(--border-color);
@@ -230,7 +226,6 @@
         .feedback-btn.selected.up { border-color: var(--accent-emerald); color: var(--accent-emerald); }
         .feedback-btn.selected.down { border-color: #F87171; color: #F87171; }
 
-        /* INPUT */
         .input-area {
             padding: 1.5rem 2rem;
             background: rgba(7, 10, 19, 0.9);
@@ -268,7 +263,6 @@
         .send-button:hover { opacity: 0.95; transform: translateY(-1px); }
         .send-button:active { transform: translateY(0); }
 
-        /* RIGHT PANEL */
         .info-panel {
             flex: 1.8; display: flex; flex-direction: column;
             background: rgba(15, 23, 42, 0.35);
@@ -276,7 +270,6 @@
             overflow: hidden;
         }
 
-        /* TABS */
         .panel-tabs {
             display: flex;
             border-bottom: 1px solid var(--border-color);
@@ -285,9 +278,9 @@
         }
 
         .panel-tab {
-            flex: 1; padding: 0.85rem 0.5rem;
-            font-family: 'Outfit', sans-serif; font-size: 0.8rem; font-weight: 600;
-            text-transform: uppercase; letter-spacing: 0.5px;
+            flex: 1; padding: 0.85rem 0.4rem;
+            font-family: 'Outfit', sans-serif; font-size: 0.72rem; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.3px;
             color: var(--text-secondary);
             cursor: pointer; border: none; background: none;
             border-bottom: 2px solid transparent;
@@ -306,7 +299,16 @@
             border-bottom-color: var(--accent-violet);
         }
 
-        /* TAB CONTENT */
+        .panel-tab.compliance-tab.active {
+            color: var(--accent-emerald);
+            border-bottom-color: var(--accent-emerald);
+        }
+
+        .panel-tab.visualize-tab.active {
+            color: var(--accent-cyan);
+            border-bottom-color: var(--accent-cyan);
+        }
+
         .tab-content { display: none; flex: 1; overflow-y: auto; padding: 1.5rem; flex-direction: column; gap: 1.5rem; }
         .tab-content.active { display: flex; }
 
@@ -326,7 +328,6 @@
 
         .overview-box strong { color: var(--text-primary); }
 
-        /* CITATIONS */
         .citations-list { display: flex; flex-direction: column; gap: 1rem; }
 
         .citation-card {
@@ -373,7 +374,6 @@
             display: flex; justify-content: space-between;
         }
 
-        /* GRAPH PANEL */
         .graph-controls { display: flex; flex-direction: column; gap: 0.75rem; }
 
         .graph-select, .graph-input-field {
@@ -447,7 +447,154 @@
             border-radius: 4px; margin-left: 0.5rem;
         }
 
-        /* TYPING / LOADING */
+        .reading-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.5rem 0.75rem;
+        }
+
+        .reading-label {
+            flex: 1;
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+
+        .reading-input {
+            width: 80px;
+            padding: 0.3rem 0.5rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            color: var(--text-primary);
+            font-size: 0.82rem;
+            font-family: 'JetBrains Mono', monospace;
+            text-align: right;
+            outline: none;
+        }
+
+        .reading-unit {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            width: 55px;
+            text-align: left;
+        }
+
+        .compliance-card {
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.82rem;
+            line-height: 1.5;
+            border: 1px solid;
+        }
+
+        .compliance-card.PASS {
+            background: rgba(16, 185, 129, 0.06);
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+
+        .compliance-card.WARN {
+            background: rgba(245, 158, 11, 0.06);
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .compliance-card.FAIL {
+            background: rgba(239, 68, 68, 0.08);
+            border-color: rgba(239, 68, 68, 0.35);
+        }
+
+        .compliance-status-badge {
+            display: inline-block;
+            font-size: 0.68rem; font-weight: 800;
+            padding: 0.1rem 0.45rem;
+            border-radius: 3px;
+            margin-right: 0.4rem;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-PASS { background: rgba(16,185,129,0.2); color: #10B981; }
+        .badge-WARN { background: rgba(245,158,11,0.2); color: #F59E0B; }
+        .badge-FAIL { background: rgba(239,68,68,0.2);  color: #EF4444; }
+
+        .compliance-summary-bar {
+            display: flex;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.82rem;
+        }
+
+        .summary-stat { display: flex; flex-direction: column; align-items: center; flex: 1; }
+        .summary-stat .stat-val { font-size: 1.3rem; font-weight: 700; }
+        .summary-stat .stat-label { font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; }
+
+        .compliance-notice {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            background: rgba(245, 158, 11, 0.06);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            line-height: 1.5;
+            margin-bottom: 0.75rem;
+        }
+
+        .graph-legend {
+            display: flex; flex-wrap: wrap; gap: 0.6rem;
+            font-size: 0.72rem; color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+        }
+        .legend-item { display: flex; align-items: center; gap: 0.3rem; }
+        .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+        #graph-canvas {
+            width: 100%; height: 420px;
+            background: rgba(0,0,0,0.15);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            transition: all 0.2s ease;
+        }
+
+        #graph-canvas.maximized {
+            position: fixed;
+            top: 20px; left: 20px; right: 20px; bottom: 20px;
+            width: auto; height: auto;
+            z-index: 9999;
+            box-shadow: 0 0 40px rgba(0,0,0,0.6);
+        }
+
+        .graph-canvas-controls {
+            display: flex; justify-content: flex-end; gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .graph-size-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            border-radius: 6px;
+            padding: 0.35rem 0.7rem;
+            font-size: 0.78rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .graph-size-btn:hover { border-color: var(--accent-cyan); color: var(--text-primary); }
+
+        .graph-canvas-overlay {
+            display: none;
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 9998;
+        }
+        .graph-canvas-overlay.active { display: block; }
+
         .typing-indicator { display: flex; align-items: center; gap: 4px; padding: 0.4rem 0.8rem; }
 
         .typing-dot {
@@ -470,7 +617,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* WELCOME */
         .welcome-card {
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
@@ -537,7 +683,9 @@
             <!-- TABS -->
             <div class="panel-tabs">
                 <button class="panel-tab active" onclick="switchTab('citations', this)">📄 Citations</button>
-                <button class="panel-tab graph-tab" onclick="switchTab('graph', this)">🕸 Knowledge Graph</button>
+                <button class="panel-tab graph-tab" onclick="switchTab('graph', this)">🕸 Graph</button>
+                <button class="panel-tab compliance-tab" onclick="switchTab('compliance', this)">🛡 Compliance</button>
+                <button class="panel-tab visualize-tab" onclick="switchTab('visualize', this)">🔗 Visualize</button>
             </div>
 
             <!-- CITATIONS TAB -->
@@ -599,6 +747,64 @@
                 </div>
             </div>
 
+            <!-- COMPLIANCE TAB -->
+            <div class="tab-content" id="tab-compliance">
+                <div>
+                    <div class="panel-section-title">Compliance Deviation Check</div>
+
+                    <div class="graph-controls">
+                        <select class="graph-select" id="compliance-equipment" onchange="loadPreset()">
+                            <option value="">Select equipment...</option>
+                        </select>
+
+                        <button class="graph-query-btn" id="compliance-btn" onclick="runComplianceCheck()"
+                            style="background: linear-gradient(135deg, #10B981, #059669);
+                                   box-shadow: 0 4px 12px rgba(16,185,129,0.25);">
+                            Run Compliance Check
+                        </button>
+                    </div>
+                </div>
+
+                <div id="compliance-readings-section" style="display:none;">
+                    <div class="panel-section-title">
+                        Inspection Readings
+                        <span id="compliance-readings-source" style="font-size:0.7rem; color:var(--text-secondary); text-transform:none; letter-spacing:0;"></span>
+                    </div>
+                    <div id="compliance-notice-area"></div>
+                    <div id="compliance-readings-grid" style="display:flex; flex-direction:column; gap:0.5rem;"></div>
+                </div>
+
+                <div>
+                    <div class="panel-section-title">
+                        Results
+                        <span id="compliance-summary-badge" style="display:none; font-size:0.7rem; margin-left:0.5rem;"></span>
+                    </div>
+                    <div id="compliance-results">
+                        <div class="graph-empty">Select equipment and run a check to see compliance status.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VISUALIZE TAB -->
+            <div class="tab-content" id="tab-visualize">
+                <div>
+                    <div class="panel-section-title">Graph Visualizer</div>
+                    <div class="graph-controls">
+                        <select class="graph-select" id="visualize-equipment">
+                            <option value="">Select equipment for its neighborhood...</option>
+                        </select>
+                        <button class="graph-query-btn" onclick="showGraphNeighborhood()">Show Neighborhood</button>
+                        <button class="graph-query-btn" style="background: linear-gradient(135deg, #00F0FF, #3B82F6); box-shadow: 0 4px 12px rgba(0,240,255,0.2);" onclick="showFullGraph()">Show Full Graph</button>
+                    </div>
+                </div>
+                <div class="graph-legend" id="graph-legend"></div>
+                <div class="graph-canvas-overlay" id="graph-canvas-overlay" onclick="toggleGraphSize()"></div>
+                <div class="graph-canvas-controls">
+                    <button class="graph-size-btn" id="graph-size-btn" onclick="toggleGraphSize()">⛶ Maximize</button>
+                </div>
+                <div id="graph-canvas"></div>
+            </div>
+
         </div>
     </div>
 
@@ -612,6 +818,8 @@
         let lastQuery = "";
         let lastAnswer = "";
         let lastSources = [];
+        let currentNetwork = null;
+        let graphMaximized = false;
 
         // ── Tab switching ─────────────────────────────────
         function switchTab(tabId, btn) {
@@ -634,6 +842,18 @@
                 .replace(/\n\n/g, '<br><br>')
                 .replace(/\n/g, '<br>');
         }
+
+        // ── Stats (doc count) ──────────────────────────────
+        async function refreshStats() {
+            try {
+                const res = await fetch('/api/stats');
+                const data = await res.json();
+                document.getElementById('doc-count').textContent = `${data.total_documents} files`;
+            } catch (err) {
+                console.error('Failed to fetch stats:', err);
+            }
+        }
+        refreshStats();
 
         // ── Chat helpers ──────────────────────────────────
         function appendMessage(role, content) {
@@ -780,16 +1000,8 @@
                         `${result.chunks_created} chunks created, ${result.chunks_embedded} embedded, ` +
                         `graph updated: ${result.graph_updated}. Try querying this equipment now.`;
                     fileInput.value = '';
-                    async function refreshStats() {
-                        try {
-                            const res = await fetch('/api/stats');
-                            const data = await res.json();
-                            document.getElementById('doc-count').textContent = `${data.total_documents} files`;
-                        } catch (err) {
-                            console.error('Failed to fetch stats:', err);
-                        }
-                    }
-                    refreshStats(); // run once on page load
+                    refreshStats();
+                    loadEquipmentOptions();
                 } else if (result.status === 'duplicate') {
                     statusDiv.className = 'ingest-status error';
                     statusDiv.textContent = `Skipped — ${result.detail}`;
@@ -887,6 +1099,326 @@
             } finally {
                 btn.disabled = false;
                 btn.textContent = 'Query Knowledge Graph';
+            }
+        }
+
+        // ── Shared: load equipment options for both Compliance and Visualize tabs ─
+        async function loadEquipmentOptions() {
+            const selects = [
+                document.getElementById('compliance-equipment'),
+                document.getElementById('visualize-equipment')
+            ];
+            try {
+                const res = await fetch('/api/graph/equipment');
+                if (!res.ok) throw new Error('Could not load equipment list');
+                const data = await res.json();
+                const equipment = (data.equipment || []).slice().sort();
+
+                selects.forEach(select => {
+                    if (!select) return;
+                    const currentValue = select.value;
+                    select.innerHTML = '<option value="">Select equipment...</option>';
+                    equipment.forEach(name => {
+                        const opt = document.createElement('option');
+                        opt.value = name;
+                        opt.textContent = name;
+                        select.appendChild(opt);
+                    });
+                    if (currentValue && equipment.includes(currentValue)) {
+                        select.value = currentValue;
+                    }
+                });
+            } catch (err) {
+                console.error('Failed to load equipment list:', err);
+            }
+        }
+        loadEquipmentOptions();
+
+        // ── Compliance check ───────────────────────────────
+        const READING_META = {
+            "vibration_mm_s"            : { label: "Vibration",            unit: "mm/sec" },
+            "bearing_temp_rise_c"       : { label: "Bearing Temp Rise",    unit: "°C" },
+            "noise_db"                  : { label: "Noise Level",          unit: "dB" },
+            "wearing_ring_clearance_mm" : { label: "Wearing Ring Clearance", unit: "mm" },
+            "motor_current_a"           : { label: "Motor Current",        unit: "A" },
+            "shaft_deflection_mm"       : { label: "Shaft Deflection",     unit: "mm" },
+            "alignment_tir_mm"          : { label: "Alignment TIR",        unit: "mm" },
+            "seal_leakage_drops_per_min": { label: "Seal Leakage",         unit: "drops/min" },
+        };
+
+        async function loadPreset() {
+            const equipment = document.getElementById('compliance-equipment').value;
+            const section   = document.getElementById('compliance-readings-section');
+            const grid      = document.getElementById('compliance-readings-grid');
+            const sourceTag = document.getElementById('compliance-readings-source');
+            const noticeArea = document.getElementById('compliance-notice-area');
+
+            noticeArea.innerHTML = '';
+
+            if (!equipment) { section.style.display = 'none'; return; }
+
+            try {
+                const res = await fetch(`/api/compliance/preset/${equipment}`);
+                if (!res.ok) throw { noPreset: true };
+                const data = await res.json();
+
+                sourceTag.textContent = '(pre-filled from inspection report on file)';
+                grid.innerHTML = '';
+                for (const [key, value] of Object.entries(data.readings)) {
+                    const meta = READING_META[key] || { label: key, unit: '' };
+                    const row  = document.createElement('div');
+                    row.className = 'reading-row';
+                    row.innerHTML = `
+                        <span class="reading-label">${meta.label}</span>
+                        <input class="reading-input" type="number" step="0.01"
+                               id="reading-${key}" value="${value}" data-key="${key}">
+                        <span class="reading-unit">${meta.unit}</span>
+                    `;
+                    grid.appendChild(row);
+                }
+                section.style.display = 'block';
+
+            } catch {
+                try {
+                    const itemsRes = await fetch('/api/compliance/items');
+                    const itemsData = await itemsRes.json();
+                    const items = itemsData.items || [];
+
+                    noticeArea.innerHTML = `
+                        <div class="compliance-notice">
+                            ⚠ No inspection readings on file yet for <strong>${equipment}</strong>.
+                            Enter values manually below, or upload a new inspection report for this
+                            equipment via <strong>Live Ingest</strong> to populate this automatically next time.
+                        </div>`;
+
+                    sourceTag.textContent = '(manual entry — no data on file)';
+                    grid.innerHTML = '';
+                    items.forEach(item => {
+                        const row = document.createElement('div');
+                        row.className = 'reading-row';
+                        row.innerHTML = `
+                            <span class="reading-label">${item.description}</span>
+                            <input class="reading-input" type="number" step="0.01"
+                                   id="reading-${item.key}" placeholder="—" data-key="${item.key}">
+                            <span class="reading-unit">${item.unit}</span>
+                        `;
+                        grid.appendChild(row);
+                    });
+                    section.style.display = 'block';
+
+                } catch (err) {
+                    console.error('Failed to load inspection item list:', err);
+                    section.style.display = 'none';
+                }
+            }
+        }
+
+        async function runComplianceCheck() {
+            const equipment = document.getElementById('compliance-equipment').value;
+            const resultsDiv = document.getElementById('compliance-results');
+            const btn        = document.getElementById('compliance-btn');
+            const badge      = document.getElementById('compliance-summary-badge');
+
+            if (!equipment) {
+                resultsDiv.innerHTML = '<div class="graph-empty">Please select equipment first.</div>';
+                return;
+            }
+
+            const inputs   = document.querySelectorAll('.reading-input');
+            const readings = {};
+            inputs.forEach(inp => {
+                if (inp.value.trim() !== '') {
+                    readings[inp.dataset.key] = parseFloat(inp.value);
+                }
+            });
+
+            if (Object.keys(readings).length === 0) {
+                resultsDiv.innerHTML = '<div class="graph-empty">No readings entered. Fill in at least one value above, or select equipment with data on file.</div>';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Checking...';
+            resultsDiv.innerHTML = '<div class="graph-empty">Running compliance checks...</div>';
+            badge.style.display = 'none';
+
+            try {
+                const res  = await fetch('/api/compliance/check', {
+                    method : 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body   : JSON.stringify({ equipment, readings })
+                });
+
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+
+                resultsDiv.innerHTML = '';
+
+                const summaryBar = document.createElement('div');
+                summaryBar.className = 'compliance-summary-bar';
+                summaryBar.innerHTML = `
+                    <div class="summary-stat">
+                        <span class="stat-val" style="color:#94A3B8">${data.total_checks}</span>
+                        <span class="stat-label">Checks</span>
+                    </div>
+                    <div class="summary-stat">
+                        <span class="stat-val" style="color:#10B981">${data.pass}</span>
+                        <span class="stat-label">Pass</span>
+                    </div>
+                    <div class="summary-stat">
+                        <span class="stat-val" style="color:#F59E0B">${data.warn}</span>
+                        <span class="stat-label">Warn</span>
+                    </div>
+                    <div class="summary-stat">
+                        <span class="stat-val" style="color:#EF4444">${data.fail}</span>
+                        <span class="stat-label">Fail</span>
+                    </div>
+                `;
+                resultsDiv.appendChild(summaryBar);
+
+                if (data.governing_regulations && data.governing_regulations.length > 0) {
+                    const regDiv = document.createElement('div');
+                    regDiv.style.cssText = 'font-size:0.78rem; color:var(--text-secondary); margin-bottom:0.75rem;';
+                    regDiv.innerHTML = `Governing: ${data.governing_regulations.map(r =>
+                        `<span style="color:#10B981; font-weight:600;">${r}</span>`
+                    ).join(', ')}`;
+                    resultsDiv.appendChild(regDiv);
+                }
+
+                data.all_results.forEach(r => {
+                    const card = document.createElement('div');
+                    card.className = `compliance-card ${r.status}`;
+                    card.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.3rem;">
+                            <span style="font-weight:600; color:var(--text-primary);">${r.description || r.item}</span>
+                            <span class="compliance-status-badge badge-${r.status}">${r.status}</span>
+                        </div>
+                        <div style="display:flex; gap:1rem; margin-bottom:0.3rem;">
+                            <span>Value: <strong style="color:var(--text-primary);">${r.value} ${r.unit || ''}</strong></span>
+                            <span>Limit: <strong>${r.limit} ${r.unit || ''}</strong></span>
+                        </div>
+                        <div style="color:var(--text-secondary); font-size:0.75rem;">${r.detail}</div>
+                        <div style="color:var(--text-secondary); font-size:0.72rem; margin-top:0.2rem;">
+                            📋 ${r.clause || ''}
+                        </div>
+                    `;
+                    resultsDiv.appendChild(card);
+                });
+
+                const overall = data.fail > 0 ? 'FAIL' : data.warn > 0 ? 'WARN' : 'PASS';
+                badge.textContent = overall;
+                badge.style.display = 'inline-block';
+                badge.style.cssText = `display:inline-block; font-size:0.7rem; font-weight:800;
+                    padding:0.1rem 0.45rem; border-radius:3px; margin-left:0.5rem;
+                    background:${overall==='PASS'?'rgba(16,185,129,0.2)':overall==='WARN'?'rgba(245,158,11,0.2)':'rgba(239,68,68,0.2)'};
+                    color:${overall==='PASS'?'#10B981':overall==='WARN'?'#F59E0B':'#EF4444'};`;
+
+            } catch (err) {
+                resultsDiv.innerHTML = `<div class="graph-empty">⚠️ Error: ${err.message}</div>`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Run Compliance Check';
+            }
+        }
+
+        // ── Graph visualizer ───────────────────────────────
+        const NODE_COLORS = {
+            Equipment  : '#00F0FF',
+            Person     : '#8B5CF6',
+            Vendor     : '#F59E0B',
+            Regulation : '#EF4444',
+            Part       : '#10B981',
+            Incident   : '#F87171',
+            Document   : '#94A3B8',
+        };
+
+        function renderLegend() {
+            const legend = document.getElementById('graph-legend');
+            legend.innerHTML = Object.entries(NODE_COLORS).map(([type, color]) => `
+                <div class="legend-item">
+                    <span class="legend-dot" style="background:${color};"></span>${type}
+                </div>
+            `).join('');
+        }
+        renderLegend();
+
+        function toggleGraphSize() {
+            const canvas = document.getElementById('graph-canvas');
+            const overlay = document.getElementById('graph-canvas-overlay');
+            const btn = document.getElementById('graph-size-btn');
+
+            graphMaximized = !graphMaximized;
+
+            if (graphMaximized) {
+                canvas.classList.add('maximized');
+                overlay.classList.add('active');
+                btn.textContent = '✕ Minimize';
+            } else {
+                canvas.classList.remove('maximized');
+                overlay.classList.remove('active');
+                btn.textContent = '⛶ Maximize';
+            }
+
+            // vis-network needs an explicit resize + fit after the container size changes,
+            // since it doesn't observe CSS transitions on its own
+            if (currentNetwork) {
+                setTimeout(() => {
+                    currentNetwork.setSize('100%', '100%');
+                    currentNetwork.fit();
+                    currentNetwork.redraw();
+                }, 50);
+            }
+        }
+
+        function renderGraph(data) {
+            const container = document.getElementById('graph-canvas');
+            if (!data.nodes || data.nodes.length === 0) {
+                container.innerHTML = '<div class="graph-empty" style="padding-top: 3rem;">No graph data to display.</div>';
+                return;
+            }
+            const nodes = new vis.DataSet(data.nodes.map(n => ({
+                id: n.id, label: n.label, group: n.group,
+                color: { background: NODE_COLORS[n.group] || '#64748B', border: '#0F172A' },
+                font: { color: '#F8FAFC', size: 12 }
+            })));
+            const edges = new vis.DataSet(data.edges.map(e => ({
+                from: e.from, to: e.to, label: e.label, arrows: 'to',
+                color: { color: 'rgba(255,255,255,0.25)', highlight: '#00F0FF' },
+                font: { color: '#94A3B8', size: 9, strokeWidth: 0 }
+            })));
+            currentNetwork = new vis.Network(container, { nodes, edges }, {
+                physics: { stabilization: true, barnesHut: { gravitationalConstant: -3000, springLength: 120 } },
+                interaction: { hover: true, tooltipDelay: 100 },
+                nodes: { shape: 'dot', size: 14 }
+            });
+        }
+
+        async function showGraphNeighborhood() {
+            const equipment = document.getElementById('visualize-equipment').value;
+            const container = document.getElementById('graph-canvas');
+            if (!equipment) {
+                container.innerHTML = '<div class="graph-empty" style="padding-top: 3rem;">Select equipment first.</div>';
+                return;
+            }
+            container.innerHTML = '<div class="graph-empty" style="padding-top: 3rem;">Loading...</div>';
+            try {
+                const res = await fetch(`/api/graph/visualize?equipment=${encodeURIComponent(equipment)}`);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                renderGraph(await res.json());
+            } catch (err) {
+                container.innerHTML = `<div class="graph-empty" style="padding-top: 3rem;">⚠️ ${err.message}</div>`;
+            }
+        }
+
+        async function showFullGraph() {
+            const container = document.getElementById('graph-canvas');
+            container.innerHTML = '<div class="graph-empty" style="padding-top: 3rem;">Loading...</div>';
+            try {
+                const res = await fetch('/api/graph/visualize');
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                renderGraph(await res.json());
+            } catch (err) {
+                container.innerHTML = `<div class="graph-empty" style="padding-top: 3rem;">⚠️ ${err.message}</div>`;
             }
         }
 
