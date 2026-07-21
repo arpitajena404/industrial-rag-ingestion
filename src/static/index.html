@@ -270,6 +270,10 @@
             overflow: hidden;
         }
 
+        .info-panel.no-backdrop-filter {
+            backdrop-filter: none !important;
+        }
+
         .panel-tabs {
             display: flex;
             border-bottom: 1px solid var(--border-color);
@@ -562,12 +566,66 @@
             transition: all 0.2s ease;
         }
 
-        #graph-canvas.maximized {
+        .graph-canvas-wrapper {
+            position: relative;
+            width: 100%;
+            transition: all 0.2s ease;
+        }
+
+        .graph-canvas-wrapper.maximized {
             position: fixed;
-            top: 20px; left: 20px; right: 20px; bottom: 20px;
-            width: auto; height: auto;
+            top: 5vh;
+            left: 5vw;
+            width: 90vw;
+            height: 90vh;
             z-index: 9999;
-            box-shadow: 0 0 40px rgba(0,0,0,0.6);
+            background: #070A13;
+            border: 2px solid var(--accent-blue);
+            border-radius: 12px;
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.4), 0 0 60px rgba(59, 130, 246, 0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .graph-canvas-wrapper.maximized #graph-canvas {
+            border: none;
+            border-radius: 0;
+            height: 100% !important;
+            width: 100% !important;
+            background: transparent;
+        }
+
+        .graph-minimize-btn {
+            display: none;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 10000;
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid var(--border-color);
+            color: #FFFFFF;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            cursor: pointer;
+            transition: all 0.2s;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            outline: none;
+        }
+
+        .graph-canvas-wrapper.maximized .graph-minimize-btn {
+            display: flex;
+        }
+
+        .graph-minimize-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: #EF4444;
+            color: #FFFFFF;
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.5);
         }
 
         .graph-canvas-controls {
@@ -590,7 +648,9 @@
         .graph-canvas-overlay {
             display: none;
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
             z-index: 9998;
         }
         .graph-canvas-overlay.active { display: block; }
@@ -802,7 +862,10 @@
                 <div class="graph-canvas-controls">
                     <button class="graph-size-btn" id="graph-size-btn" onclick="toggleGraphSize()">⛶ Maximize</button>
                 </div>
-                <div id="graph-canvas"></div>
+                <div class="graph-canvas-wrapper" id="graph-canvas-wrapper">
+                    <div id="graph-canvas"></div>
+                    <button class="graph-minimize-btn" id="graph-minimize-btn" onclick="toggleGraphSize()">✕</button>
+                </div>
             </div>
 
         </div>
@@ -1343,20 +1406,23 @@
         renderLegend();
 
         function toggleGraphSize() {
-            const canvas = document.getElementById('graph-canvas');
+            const wrapper = document.getElementById('graph-canvas-wrapper');
             const overlay = document.getElementById('graph-canvas-overlay');
             const btn = document.getElementById('graph-size-btn');
+            const infoPanel = document.querySelector('.info-panel');
 
             graphMaximized = !graphMaximized;
 
             if (graphMaximized) {
-                canvas.classList.add('maximized');
+                if (infoPanel) infoPanel.classList.add('no-backdrop-filter');
+                wrapper.classList.add('maximized');
                 overlay.classList.add('active');
-                btn.textContent = '✕ Minimize';
+                btn.style.display = 'none';
             } else {
-                canvas.classList.remove('maximized');
+                if (infoPanel) infoPanel.classList.remove('no-backdrop-filter');
+                wrapper.classList.remove('maximized');
                 overlay.classList.remove('active');
-                btn.textContent = '⛶ Maximize';
+                btn.style.display = 'inline-block';
             }
 
             // vis-network needs an explicit resize + fit after the container size changes,
